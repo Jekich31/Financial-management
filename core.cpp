@@ -1,20 +1,5 @@
 #include "core.h"
 #include "utils.h"
-<<<<<<< HEAD
-#include <fstream>
-#include <sstream>
-#include <stdexcept>
-#include <algorithm>
-
-using namespace std;
-
-// --- CurrencyManager ---
-CurrencyManager::CurrencyManager() {
-    baseCurrency = "UAH";
-    exchangeRates["UAH"] = 1.0;
-    exchangeRates["USD"] = 38.5;
-    exchangeRates["EUR"] = 42.0;
-=======
 #include <algorithm>
 #include <fstream>
 #include <sstream>
@@ -39,7 +24,6 @@ namespace {
 CurrencyManager::CurrencyManager() {
     baseCurrency = "UAH";
     exchangeRates["UAH"] = 1.0;
->>>>>>> 5880eb6 (Додав деякі пункти меню, локалізацію, та ін.)
 }
 
 CurrencyManager& CurrencyManager::getInstance() {
@@ -54,9 +38,6 @@ double CurrencyManager::convert(double amount, const string& from, const string&
     return (amount * exchangeRates[from]) / exchangeRates[to];
 }
 
-<<<<<<< HEAD
-// --- AccountManager ---
-=======
 void CurrencyManager::setExchangeRate(const string& currency, double newRate) {
     if (newRate > 0) {
         exchangeRates[currency] = newRate;
@@ -77,7 +58,6 @@ unordered_map<string, double> CurrencyManager::getRates() const {
 
 // --- AccountManager ---
 
->>>>>>> 5880eb6 (Додав деякі пункти меню, локалізацію, та ін.)
 string AccountManager::generateTxId() { return to_string(transactionCounter++); }
 string AccountManager::generateAccId() { return to_string(accountCounter++); }
 
@@ -87,10 +67,7 @@ void AccountManager::setCounters(int accCount, int txCount) {
 }
 
 void AccountManager::addAccount(shared_ptr<Account> account) { accounts.push_back(account); }
-<<<<<<< HEAD
-=======
 
->>>>>>> 5880eb6 (Додав деякі пункти меню, локалізацію, та ін.)
 vector<shared_ptr<Account>> AccountManager::getAccounts() const { return accounts; }
 
 shared_ptr<Account> AccountManager::getAccountById(const string& id) {
@@ -98,8 +75,6 @@ shared_ptr<Account> AccountManager::getAccountById(const string& id) {
     return nullptr;
 }
 
-<<<<<<< HEAD
-=======
 bool AccountManager::deleteAccount(const string& accountId, const string& userName) {
     auto it = find_if(accounts.begin(), accounts.end(), [&](const shared_ptr<Account>& acc) {
         return acc->getId() == accountId;
@@ -158,7 +133,6 @@ bool AccountManager::transferFunds(const string& fromId, const string& toId, dou
     return false;
 }
 
->>>>>>> 5880eb6 (Додав деякі пункти меню, локалізацію, та ін.)
 bool AccountManager::makeExpense(const string& accountId, double amount, const string& category, const string& description, string date, string userName) {
     auto acc = getAccountById(accountId);
     if (acc && acc->withdraw(amount)) {
@@ -190,16 +164,6 @@ vector<Transaction> AccountManager::getTransactionsForUser(const string& userNam
 }
 
 // --- StorageManager ---
-<<<<<<< HEAD
-static vector<string> split(const string& s, char delimiter) {
-    vector<string> tokens;
-    string token;
-    istringstream tokenStream(s);
-    while (getline(tokenStream, token, delimiter)) tokens.push_back(token);
-    return tokens;
-}
-=======
->>>>>>> 5880eb6 (Додав деякі пункти меню, локалізацію, та ін.)
 
 void StorageManager::saveToFile(const AccountManager& manager, const string& filename) {
     ofstream out(filename);
@@ -219,12 +183,7 @@ void StorageManager::saveToFile(const AccountManager& manager, const string& fil
             auto members = sb->getMembers();
             out << "|";
             for (size_t i = 0; i < members.size(); ++i) {
-<<<<<<< HEAD
-                out << members[i];
-                if (i < members.size() - 1) out << ",";
-=======
                 out << members[i] << (i < members.size() - 1 ? "," : "");
->>>>>>> 5880eb6 (Додав деякі пункти меню, локалізацію, та ін.)
             }
         }
         out << "\n";
@@ -234,10 +193,6 @@ void StorageManager::saveToFile(const AccountManager& manager, const string& fil
                 << tx.date << "|" << tx.description << "|" << tx.isIncome << "|" << tx.userName << "\n";
         }
     }
-<<<<<<< HEAD
-    out.close();
-=======
->>>>>>> 5880eb6 (Додав деякі пункти меню, локалізацію, та ін.)
 }
 
 void StorageManager::loadFromFile(AccountManager& manager, const string& filename) {
@@ -257,22 +212,10 @@ void StorageManager::loadFromFile(AccountManager& manager, const string& filenam
             double balance = stod(parts[6]);
             maxAccId = max(maxAccId, stoi(id));
 
-<<<<<<< HEAD
-            if (type == "WALLET") {
-                currentAcc = make_shared<Wallet>(id, name, curr, owner, balance);
-            }
-            else if (type == "CREDIT_CARD") {
-                currentAcc = make_shared<CreditCard>(id, name, curr, owner, stod(parts[7]), balance);
-            }
-            else if (type == "SHARED_BUDGET") {
-                currentAcc = make_shared<SharedBudget>(id, name, curr, split(parts[7], ','), balance);
-            }
-=======
             if (type == "WALLET") currentAcc = make_shared<Wallet>(id, name, curr, owner, balance);
             else if (type == "CREDIT_CARD") currentAcc = make_shared<CreditCard>(id, name, curr, owner, stod(parts[7]), balance);
             else if (type == "SHARED_BUDGET") currentAcc = make_shared<SharedBudget>(id, name, curr, split(parts[7], ','), balance);
 
->>>>>>> 5880eb6 (Додав деякі пункти меню, локалізацію, та ін.)
             manager.addAccount(currentAcc);
         }
         else if (parts[0] == "TX" && currentAcc != nullptr) {
@@ -281,18 +224,11 @@ void StorageManager::loadFromFile(AccountManager& manager, const string& filenam
             currentAcc->addTransaction(tx);
         }
     }
-<<<<<<< HEAD
-    in.close();
-=======
->>>>>>> 5880eb6 (Додав деякі пункти меню, локалізацію, та ін.)
     manager.setCounters(maxAccId + 1, maxTxId + 1);
 }
 
 // --- ReportGenerator ---
-<<<<<<< HEAD
-=======
 
->>>>>>> 5880eb6 (Додав деякі пункти меню, локалізацію, та ін.)
 vector<Transaction> ReportGenerator::getTop3Expenses(const vector<Transaction>& history, const string& startDate, const string& endDate) {
     vector<Transaction> filtered;
     for (const auto& t : history) {
@@ -311,8 +247,4 @@ map<string, double> ReportGenerator::getExpensesByUser(const vector<Transaction>
         }
     }
     return userStats;
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 5880eb6 (Додав деякі пункти меню, локалізацію, та ін.)

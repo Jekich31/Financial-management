@@ -24,10 +24,6 @@ public:
     std::string getCurrency() const { return currency; }
     std::string getOwner() const { return owner; }
     std::vector<Transaction> getHistory() const { return history; }
-<<<<<<< HEAD
-
-=======
->>>>>>> 5880eb6 (Додав деякі пункти меню, локалізацію, та ін.)
     virtual bool withdraw(double amount) = 0;
     virtual void deposit(double amount) { balance += amount; }
     void addTransaction(const Transaction& t) { history.push_back(t); }
@@ -37,10 +33,7 @@ public:
     virtual bool hasAccess(const std::string& userName) const {
         return owner == userName || isShared();
     }
-<<<<<<< HEAD
-=======
     virtual void setName(const std::string& newName) { name = newName; }
->>>>>>> 5880eb6 (Додав деякі пункти меню, локалізацію, та ін.)
 };
 
 class Wallet : public Account {
@@ -68,10 +61,7 @@ public:
     }
     std::string getType() const override { return "CREDIT_CARD"; }
     double getLimit() const { return creditLimit; }
-<<<<<<< HEAD
-=======
     void setLimit(double newLimit) { creditLimit = newLimit; }
->>>>>>> 5880eb6 (Додав деякі пункти меню, локалізацію, та ін.)
 };
 
 class SharedBudget : public Account {
@@ -92,8 +82,6 @@ public:
     bool hasAccess(const std::string& userName) const override {
         return std::find(members.begin(), members.end(), userName) != members.end();
     }
-<<<<<<< HEAD
-=======
 
 
     void addMember(const std::string& user) {
@@ -106,5 +94,4 @@ public:
         members.erase(std::remove(members.begin(), members.end(), user), members.end());
     }
 
->>>>>>> 5880eb6 (Додав деякі пункти меню, локалізацію, та ін.)
 };

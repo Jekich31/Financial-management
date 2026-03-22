@@ -10,11 +10,7 @@
 using namespace std;
 
 void clearScreen() {
-<<<<<<< HEAD
-    system("cls"); // Для Windows
-=======
     system("cls");
->>>>>>> 5880eb6 (Додав деякі пункти меню, локалізацію, та ін.)
 }
 
 void waitUser() {
@@ -53,12 +49,8 @@ bool parseAndValidateDate(const string& input, string& standardizedDate) {
     else {
         return false;
     }
-<<<<<<< HEAD
-
-=======
     if (y > 2026) return false;
     if (y < 2000) return false;
->>>>>>> 5880eb6 (Додав деякі пункти меню, локалізацію, та ін.)
     if (m < 1 || m > 12) return false;
 
     int daysInMonth[] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
@@ -75,10 +67,7 @@ string getValidDate(AppLanguage lang) {
     string input, stdDate;
     while (true) {
         cin >> input;
-<<<<<<< HEAD
-=======
         if (input == "0")return "0";
->>>>>>> 5880eb6 (Додав деякі пункти меню, локалізацію, та ін.)
         if (parseAndValidateDate(input, stdDate)) return stdDate;
         if (lang == AppLanguage::Ukrainian) cout << "Некоректна дата! Використовуйте DD.MM.YYYY: ";
         else cout << "Invalid date! Use DD.MM.YYYY: ";
