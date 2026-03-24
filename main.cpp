@@ -139,20 +139,44 @@ int main() {
 			string name, currency;
 			cout << ((lang == AppLanguage::Ukrainian) ? "Назва рахунку: " : "Account name: ");
 			getline(cin, name);
-			while (true) {
-				cout << ((lang == AppLanguage::Ukrainian) ? "Валюта (UAH, USD, EUR): " : "Currency (UAH, USD, EUR): ");
-				cin >> currency;
-				transform(currency.begin(), currency.end(), currency.begin(), ::toupper);
-				if (currency == "UAH" || currency == "USD" || currency == "EUR") break;
-				else cout << ((lang == AppLanguage::Ukrainian) ? "Помилка! Доступні лише UAH, USD, EUR.\n" : "Error! Only UAH, USD, EUR.\n");
-			}
+			if (type == 0) continue;
+            
+            cin.ignore();
+            
+            // --- ПОЧАТОК НОВОГО КОДУ ---
+            int currChoice;
+            cout << ((lang == AppLanguage::Ukrainian) ? "Оберіть валюту (1-UAH, 2-USD, 3-EUR): " : "Choose currency (1-UAH, 2-USD, 3-EUR): ");
+            while (!(cin >> currChoice) || currChoice < 1 || currChoice > 3) {
+                cout << ((lang == AppLanguage::Ukrainian) ? "Помилка! Введіть 1, 2 або 3: " : "Error! Enter 1, 2 or 3: ");
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            }
+            if (currChoice == 1) currency = "UAH";
+            else if (currChoice == 2) currency = "USD";
+            else currency = "EUR";
+            // --- КІНЕЦЬ НОВОГО КОДУ ---
+            
+            string newId = manager.generateAccId();
 
 			string newId = manager.generateAccId();
 			if (type == 2) {
-				cout << ((lang == AppLanguage::Ukrainian) ? "Кредитний ліміт: " : "Credit limit: ");
-				double limit = getValidDouble();
-				manager.addAccount(make_shared<CreditCard>(newId, sanitize(name), currency, sanitize(currentUser), limit));
-			}
+                cout << ((lang == AppLanguage::Ukrainian) ? "Кредитний ліміт: " : "Credit limit: ");
+                double limit = getValidDouble();
+                
+                // --- ДОДАЄМО ЗАПИТ ВЛАСНИХ КОШТІВ ---
+                cout << ((lang == AppLanguage::Ukrainian) ? "Власні кошти (початковий баланс): " : "Own funds (initial balance): ");
+                double initialBalance = getValidDouble();
+                
+                // Створюємо картку
+                auto newCard = make_shared<CreditCard>(newId, sanitize(name), currency, sanitize(currentUser), limit);
+                
+                // Якщо ти ввела більше нуля, одразу кладемо ці гроші на рахунок
+                if (initialBalance > 0) {
+                    newCard->deposit(initialBalance);
+                }
+                
+                manager.addAccount(newCard);
+            }
 			else if (type == 3) {
 				cin.ignore();
 				cout << ((lang == AppLanguage::Ukrainian) ? "Введіть імена ВСІХ учасників через пробіл: " : "Enter ALL member names separated by space: ");
@@ -361,22 +385,49 @@ int main() {
 			waitUser();
 		}
 		else if (choice == 11) {
-			clearScreen();
-			showFastAccountList(manager, currentUser, lang);
-			cout << "ID рахунку ВІДПРАВНИКА (0 - для відміни): ";
-			string fromId; cin >> fromId;
-			if (fromId == "0") continue;
-			cout << "ID рахунку ОТРИМУВАЧА: ";
-			string toId; cin >> toId;
-			cout << "Сума переказу: ";
-			double amount = getValidDouble();
-			cout << "Дата (DD.MM.YYYY): ";
-			string date = getValidDate(lang);
+            clearScreen();
+            showFastAccountList(manager, currentUser, lang);
+            
+            cout << ((lang == AppLanguage::Ukrainian) ? "ID рахунку ВІДПРАВНИКА (0 - для відміни): " : "SENDER Account ID (0 to cancel): ");
+            string fromId; 
+            cin >> fromId;
+            if (fromId == "0") continue;
+            
+            cout << ((lang == AppLanguage::Ukrainian) ? "ID рахунку ОТРИМУВАЧА: " : "RECEIVER Account ID: ");
+            string toId; 
+            cin >> toId;
 
-			if (manager.transferFunds(fromId, toId, amount, date, currentUser)) {
-				StorageManager::saveToFile(manager, dbFilename);
-			}
-			waitUser();
+            auto accFrom = manager.getAccountById(fromId);
+            auto accTo = manager.getAccountById(toId);
+
+            if (!accFrom || !accTo) {
+                cout << ((lang == AppLanguage::Ukrainian) ? "Помилка! Один або обидва рахунки не знайдено.\n" : "Error! One or both accounts not found.\n");
+                waitUser();
+                continue;
+            }
+
+            if (accFrom->getCurrency() != accTo->getCurrency()) {
+                double rateFrom = CurrencyManager::getInstance().getRate(accFrom->getCurrency());
+                double rateTo = CurrencyManager::getInstance().getRate(accTo->getCurrency());
+                double effectiveRate = rateFrom / rateTo;
+                
+                cout << "\n[!] " << ((lang == AppLanguage::Ukrainian) ? "Різні валюти. Поточний курс переказу: " : "Different currencies. Current transfer rate: ") 
+                     << "1 " << accFrom->getCurrency() << " = " << effectiveRate << " " << accTo->getCurrency() << "\n\n";
+            }
+
+            cout << ((lang == AppLanguage::Ukrainian) ? "Сума переказу: " : "Transfer amount: ");
+            double amount = getValidDouble();
+            
+            cout << ((lang == AppLanguage::Ukrainian) ? "Дата (DD.MM.YYYY): " : "Date (DD.MM.YYYY): ");
+            string date = getValidDate(lang);
+
+            if (manager.transferFunds(fromId, toId, amount, date, currentUser)) {
+                StorageManager::saveToFile(manager, dbFilename);
+                cout << ((lang == AppLanguage::Ukrainian) ? "-> Переказ успішно виконано!\n" : "-> Transfer successful!\n");
+            } else {
+                cout << ((lang == AppLanguage::Ukrainian) ? "-> Помилка! Недостатньо коштів або немає доступу.\n" : "-> Error! Insufficient funds or access denied.\n");
+            }
+            waitUser();
         }
         else if (choice == 12) {
             clearScreen();

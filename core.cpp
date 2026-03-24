@@ -24,6 +24,8 @@ namespace {
 CurrencyManager::CurrencyManager() {
     baseCurrency = "UAH";
     exchangeRates["UAH"] = 1.0;
+    exchangeRates["USD"] = 43.9;
+    exchangeRates["EUR"] = 51.0;
 }
 
 CurrencyManager& CurrencyManager::getInstance() {
@@ -152,6 +154,29 @@ bool AccountManager::makeIncome(const string& accountId, double amount, const st
     return false;
 }
 
+bool AccountManager::makeTransfer(const string& fromId, const string& toId, double amount, string date, string userName) {
+    auto accFrom = getAccountById(fromId);
+    auto accTo = getAccountById(toId);
+    
+    if (!accFrom || !accTo || accFrom == accTo) return false;
+    
+    if (accFrom->withdraw(amount)) {
+        double convertedAmount = amount;
+        // Якщо валюти різні, автоматично конвертуємо за актуальним курсом
+        if (accFrom->getCurrency() != accTo->getCurrency()) {
+            convertedAmount = CurrencyManager::getInstance().convert(amount, accFrom->getCurrency(), accTo->getCurrency());
+        }
+        
+        accTo->deposit(convertedAmount);
+        
+        // Записуємо зі спеціальними категоріями, щоб вони не потрапляли у звичайні звіти витрат
+        accFrom->addTransaction({generateTxId(), amount, "Transfer Out", date, "To ID " + toId, false, sanitize(userName)});
+        accTo->addTransaction({generateTxId(), convertedAmount, "Transfer In", date, "From ID " + fromId, true, sanitize(userName)});
+        return true;
+    }
+    return false;
+}
+
 vector<Transaction> AccountManager::getTransactionsForUser(const string& userName) const {
     vector<Transaction> userTx;
     for (const auto& acc : accounts) {
@@ -228,33 +253,24 @@ void StorageManager::loadFromFile(AccountManager& manager, const string& filenam
 }
 
 // --- ReportGenerator ---
-
 vector<Transaction> ReportGenerator::getTop3Expenses(const vector<Transaction>& history, const string& startDate, const string& endDate) {
     vector<Transaction> filtered;
     for (const auto& t : history) {
-        if (!t.isIncome && t.date >= startDate && t.date <= endDate) filtered.push_back(t);
+        // ДОДАНО: ігноруємо транзакції з категорією "Transfer"
+        if (!t.isIncome && t.category != "Transfer" && t.date >= startDate && t.date <= endDate) {
+            filtered.push_back(t);
+        }
     }
     sort(filtered.begin(), filtered.end(), [](const Transaction& a, const Transaction& b) { return a.amount > b.amount; });
     if (filtered.size() > 3) filtered.resize(3);
     return filtered;
 }
 
-void CurrencyManager::updateRate(const string& currency, double newRate) {
-    if (currency == baseCurrency) return; // Гривню не міняємо
-    exchangeRates[currency] = newRate;
-}
-
-double CurrencyManager::getRate(const string& currency) const {
-    if (exchangeRates.find(currency) != exchangeRates.end()) {
-        return exchangeRates.at(currency);
-    }
-    return 0.0;
-}
-
 map<string, double> ReportGenerator::getExpensesByUser(const vector<Transaction>& history, const string& startDate, const string& endDate) {
     map<string, double> userStats;
     for (const auto& t : history) {
-        if (!t.isIncome && t.date >= startDate && t.date <= endDate) {
+        // ДОДАНО: ігноруємо транзакції з категорією "Transfer"
+        if (!t.isIncome && t.category != "Transfer" && t.date >= startDate && t.date <= endDate) {
             userStats[t.userName] += t.amount;
         }
     }

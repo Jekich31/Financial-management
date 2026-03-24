@@ -47,6 +47,7 @@ public:
 
     bool makeExpense(const std::string& accountId, double amount, const std::string& category, const std::string& description, std::string date, std::string userName);
     bool makeIncome(const std::string& accountId, double amount, const std::string& category, const std::string& description, std::string date, std::string userName);
+    bool makeTransfer(const std::string& fromId, const std::string& toId, double amount, std::string date, std::string userName);
     std::vector<Transaction> getTransactionsForUser(const std::string& userName) const;
 };
 
