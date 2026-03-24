@@ -71,6 +71,7 @@ int main() {
 			cout << "9. Видалити рахунок\n";
 			cout << "10. Редагувати рахунок\n";
 			cout << "11. Переказ коштів між рахунками\n";
+			cout << "12. Загальний капітал (Конвертер валют)\n";
 			cout << "0. Вимкнути програму\n";
 			cout << "Ваш вибір: ";
 		}
@@ -374,6 +375,45 @@ int main() {
 			}
 			waitUser();
 		}
+		else if (choice == 12) { // НОВА ФІЧА: КОНВЕРТЕР ТА ЗАГАЛЬНИЙ КАПІТАЛ
+            clearScreen();
+            cout << ((lang == AppLanguage::Ukrainian) ? "--- ВАШ ЗАГАЛЬНИЙ КАПІТАЛ ---\n" : "--- YOUR TOTAL NET WORTH ---\n");
+            
+            string targetCurrency;
+            cout << ((lang == AppLanguage::Ukrainian) ? "В якій валюті порахувати всі ваші гроші? (UAH, USD, EUR): " : "In which currency to calculate all your money? (UAH, USD, EUR): ");
+            cin >> targetCurrency;
+            
+            // Робимо всі літери великими (uah -> UAH)
+            transform(targetCurrency.begin(), targetCurrency.end(), targetCurrency.begin(), ::toupper);
+
+            double totalAmount = 0.0;
+            auto accounts = manager.getAccounts();
+            bool hasAccounts = false;
+            
+            try {
+                for (const auto& acc : accounts) {
+                    // Рахуємо гроші лише на тих рахунках, до яких ти маєш доступ
+                    if (acc->hasAccess(currentUser)) {
+                        hasAccounts = true;
+                        // Магія конвертації через наш Singleton з Core.cpp
+                        double converted = CurrencyManager::getInstance().convert(acc->getBalance(), acc->getCurrency(), targetCurrency);
+                        totalAmount += converted;
+                    }
+                }
+                
+                if (!hasAccounts) {
+                    cout << ((lang == AppLanguage::Ukrainian) ? "У вас ще немає рахунків.\n" : "You have no accounts yet.\n");
+                } else {
+                    cout << ((lang == AppLanguage::Ukrainian) ? "\nВаш загальний баланс з усіх рахунків: " : "\nYour overall balance from all accounts: ") 
+                         << totalAmount << " " << targetCurrency << "\n";
+                }
+            } catch (const invalid_argument& e) {
+                // Якщо користувач ввів "GBP" або щось невідоме
+                cout << ((lang == AppLanguage::Ukrainian) ? "Помилка! Валюта не підтримується. Доступні: UAH, USD, EUR.\n" : "Error! Currency not supported. Available: UAH, USD, EUR.\n");
+            }
+            
+            waitUser();
+        }
 	}
 	return 0;
 }
