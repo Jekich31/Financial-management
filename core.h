@@ -18,9 +18,9 @@ public:
     CurrencyManager& operator=(const CurrencyManager&) = delete;
 
     double convert(double amount, const std::string& from, const std::string& to);
-    void setExchangeRate(const std::string& currency, double newRate);
-    void printRates() const;
-    std::unordered_map<std::string, double> getRates() const; // Додано для меню управління курсами
+// --- ОСЬ ЦІ ДВА НОВІ МЕТОДИ ДЛЯ ЗМІНИ КУРСУ ---
+    void updateRate(const std::string& currency, double newRate);
+    double getRate(const std::string& currency) const;
 };
 
 // Менеджер рахунків
