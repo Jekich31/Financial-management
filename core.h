@@ -17,6 +17,9 @@ public:
     CurrencyManager(const CurrencyManager&) = delete;
     CurrencyManager& operator=(const CurrencyManager&) = delete;
     double convert(double amount, const std::string& from, const std::string& to);
+// НОВІ МЕТОДИ
+    void updateRate(const std::string& currency, double newRate);
+    double getRate(const std::string& currency) const;
 };
 
 // Менеджер рахунків
