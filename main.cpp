@@ -125,25 +125,23 @@ int main() {
 			if (!foundAny) cout << ((lang == AppLanguage::Ukrainian) ? "У вас немає доступних рахунків.\n" : "You have no accessible accounts.\n");
 			waitUser();
 		}
-		else if (choice == 2) {
-			clearScreen();
-			int type;
-			cout << ((lang == AppLanguage::Ukrainian) ? "Тип (0-Вихід, 1-Гаманець, 2-Кредитка, 3-Спільний бюджет): " : "Type (0-Exit, 1-Wallet, 2-Credit Card, 3-Shared Budget): ");
-			while (!(cin >> type) || (type < 0 || type > 3)) {
-				cout << ((lang == AppLanguage::Ukrainian) ? "Помилка! Введіть 0, 1, 2 або 3: " : "Error! Enter 1, 2 or 3: ");
-				cin.clear();
-				cin.ignore(numeric_limits<streamsize>::max(), '\n');
-			}
-			if (type == 0) continue;
-			cin.ignore();
-			string name, currency;
-			cout << ((lang == AppLanguage::Ukrainian) ? "Назва рахунку: " : "Account name: ");
-			getline(cin, name);
-			if (type == 0) continue;
+else if (choice == 2) {
+            clearScreen();
+            int type;
+            cout << ((lang == AppLanguage::Ukrainian) ? "Тип (0-Вихід, 1-Гаманець, 2-Кредитка, 3-Спільний бюджет): " : "Type (0-Exit, 1-Wallet, 2-Credit Card, 3-Shared Budget): ");
+            while (!(cin >> type) || (type < 0 || type > 3)) {
+                cout << ((lang == AppLanguage::Ukrainian) ? "Помилка! Введіть 0, 1, 2 або 3: " : "Error! Enter 0, 1, 2 or 3: ");
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            }
+            if (type == 0) continue;
             
             cin.ignore();
+            string name, currency;
+            cout << ((lang == AppLanguage::Ukrainian) ? "Назва рахунку: " : "Account name: ");
+            getline(cin, name);
             
-            // --- ПОЧАТОК НОВОГО КОДУ ---
+            // --- ВИБІР ВАЛЮТИ ЦИФРАМИ ---
             int currChoice;
             cout << ((lang == AppLanguage::Ukrainian) ? "Оберіть валюту (1-UAH, 2-USD, 3-EUR): " : "Choose currency (1-UAH, 2-USD, 3-EUR): ");
             while (!(cin >> currChoice) || currChoice < 1 || currChoice > 3) {
@@ -154,48 +152,42 @@ int main() {
             if (currChoice == 1) currency = "UAH";
             else if (currChoice == 2) currency = "USD";
             else currency = "EUR";
-            // --- КІНЕЦЬ НОВОГО КОДУ ---
             
             string newId = manager.generateAccId();
-
-			string newId = manager.generateAccId();
-			if (type == 2) {
+            
+            if (type == 2) {
                 cout << ((lang == AppLanguage::Ukrainian) ? "Кредитний ліміт: " : "Credit limit: ");
                 double limit = getValidDouble();
                 
-                // --- ДОДАЄМО ЗАПИТ ВЛАСНИХ КОШТІВ ---
                 cout << ((lang == AppLanguage::Ukrainian) ? "Власні кошти (початковий баланс): " : "Own funds (initial balance): ");
                 double initialBalance = getValidDouble();
                 
-                // Створюємо картку
                 auto newCard = make_shared<CreditCard>(newId, sanitize(name), currency, sanitize(currentUser), limit);
-                
-                // Якщо ти ввела більше нуля, одразу кладемо ці гроші на рахунок
                 if (initialBalance > 0) {
                     newCard->deposit(initialBalance);
                 }
-                
                 manager.addAccount(newCard);
             }
-			else if (type == 3) {
-				cin.ignore();
-				cout << ((lang == AppLanguage::Ukrainian) ? "Введіть імена ВСІХ учасників через пробіл: " : "Enter ALL member names separated by space: ");
-				string usersLine;
-				getline(cin, usersLine);
-				stringstream ss(usersLine);
-				string u;
-				vector<string> members;
-				while (ss >> u) members.push_back(sanitize(u));
-				if (find(members.begin(), members.end(), currentUser) == members.end()) members.push_back(sanitize(currentUser));
-				manager.addAccount(make_shared<SharedBudget>(newId, sanitize(name), currency, members));
-			}
-			else {
-				manager.addAccount(make_shared<Wallet>(newId, sanitize(name), currency, sanitize(currentUser)));
-			}
-			StorageManager::saveToFile(manager, dbFilename);
-			cout << ((lang == AppLanguage::Ukrainian) ? "Рахунок створено! Ваш ID: " : "Account created! Your ID: ") << newId << "\n";
-			waitUser();
-		}
+            else if (type == 3) {
+                cin.ignore();
+                cout << ((lang == AppLanguage::Ukrainian) ? "Введіть імена ВСІХ учасників через пробіл: " : "Enter ALL member names separated by space: ");
+                string usersLine;
+                getline(cin, usersLine);
+                stringstream ss(usersLine);
+                string u;
+                vector<string> members;
+                while (ss >> u) members.push_back(sanitize(u));
+                if (find(members.begin(), members.end(), currentUser) == members.end()) members.push_back(sanitize(currentUser));
+                manager.addAccount(make_shared<SharedBudget>(newId, sanitize(name), currency, members));
+            }
+            else {
+                manager.addAccount(make_shared<Wallet>(newId, sanitize(name), currency, sanitize(currentUser)));
+            }
+            
+            StorageManager::saveToFile(manager, dbFilename);
+            cout << ((lang == AppLanguage::Ukrainian) ? "Рахунок створено! Ваш ID: " : "Account created! Your ID: ") << newId << "\n";
+            waitUser();
+        }
 		else if (choice == 3 || choice == 4) {
 			clearScreen();
 			showFastAccountList(manager, currentUser, lang);
