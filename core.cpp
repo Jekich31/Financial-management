@@ -239,6 +239,18 @@ vector<Transaction> ReportGenerator::getTop3Expenses(const vector<Transaction>& 
     return filtered;
 }
 
+void CurrencyManager::updateRate(const string& currency, double newRate) {
+    if (currency == baseCurrency) return; // Гривню не міняємо
+    exchangeRates[currency] = newRate;
+}
+
+double CurrencyManager::getRate(const string& currency) const {
+    if (exchangeRates.find(currency) != exchangeRates.end()) {
+        return exchangeRates.at(currency);
+    }
+    return 0.0;
+}
+
 map<string, double> ReportGenerator::getExpensesByUser(const vector<Transaction>& history, const string& startDate, const string& endDate) {
     map<string, double> userStats;
     for (const auto& t : history) {
