@@ -72,6 +72,7 @@ int main() {
 			cout << "10. Редагувати рахунок\n";
 			cout << "11. Переказ коштів між рахунками\n";
 			cout << "12. Загальний капітал (Конвертер валют)\n";
+			cout << "13. Оновити курси валют\n";
 			cout << "0. Вимкнути програму\n";
 			cout << "Ваш вибір: ";
 		}
@@ -89,6 +90,8 @@ int main() {
 			cout << "9. Delete account\n";
 			cout << "10. Edit account\n";
 			cout << "11. Transfer funds between accounts\n";
+			cout << "12. Total net worth (Currency Converter)\n";
+            cout << "13. Update exchange rates\n";
 			cout << "0. Exit program\n";
 			cout << "Your choice: ";
 		}
@@ -382,6 +385,37 @@ int main() {
             string targetCurrency;
             cout << ((lang == AppLanguage::Ukrainian) ? "В якій валюті порахувати всі ваші гроші? (UAH, USD, EUR): " : "In which currency to calculate all your money? (UAH, USD, EUR): ");
             cin >> targetCurrency;
+			
+		else if (choice == 13) { // НОВА ФІЧА: ОНОВЛЕННЯ КУРСУ
+            clearScreen();
+            cout << ((lang == AppLanguage::Ukrainian) ? "--- ОНОВЛЕННЯ КУРСУ ВАЛЮТ ---\n" : "--- UPDATE EXCHANGE RATES ---\n");
+            
+            // Показуємо поточний курс
+            cout << ((lang == AppLanguage::Ukrainian) ? "Поточні курси (відносно UAH):\n" : "Current rates (relative to UAH):\n");
+            cout << "USD: " << CurrencyManager::getInstance().getRate("USD") << "\n";
+            cout << "EUR: " << CurrencyManager::getInstance().getRate("EUR") << "\n\n";
+
+            string curr;
+            cout << ((lang == AppLanguage::Ukrainian) ? "Яку валюту хочете оновити? (USD, EUR або '0' для відміни): " : "Which currency to update? (USD, EUR or '0' to cancel): ");
+            cin >> curr;
+            
+            if (curr != "0") {
+                transform(curr.begin(), curr.end(), curr.begin(), ::toupper);
+                
+                if (curr == "UAH") {
+                    cout << ((lang == AppLanguage::Ukrainian) ? "Курс базової валюти (UAH) змінити не можна.\n" : "Base currency (UAH) rate cannot be changed.\n");
+                } else if (curr == "USD" || curr == "EUR") {
+                    cout << ((lang == AppLanguage::Ukrainian) ? "Введіть новий курс (скільки гривень за 1 " + curr + "): " : "Enter new rate (how many UAH for 1 " + curr + "): ");
+                    double newRate = getValidDouble();
+                    
+                    CurrencyManager::getInstance().updateRate(curr, newRate);
+                    cout << ((lang == AppLanguage::Ukrainian) ? "-> Курс успішно оновлено!\n" : "-> Rate successfully updated!\n");
+                } else {
+                    cout << ((lang == AppLanguage::Ukrainian) ? "Невідома валюта!\n" : "Unknown currency!\n");
+                }
+            }
+            waitUser();
+        }
             
             // Робимо всі літери великими (uah -> UAH)
             transform(targetCurrency.begin(), targetCurrency.end(), targetCurrency.begin(), ::toupper);
