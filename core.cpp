@@ -58,6 +58,23 @@ unordered_map<string, double> CurrencyManager::getRates() const {
     return exchangeRates;
 }
 
+double CurrencyManager::getRate(const string& currency) const {
+    auto it = exchangeRates.find(currency);
+    if (it != exchangeRates.end()) {
+        return it->second;
+    }
+    throw invalid_argument("Невідома валюта: " + currency);
+}
+
+void CurrencyManager::updateRate(const string& currency, double newRate) {
+    if (newRate > 0) {
+        exchangeRates[currency] = newRate;
+        cout << "[Система] Курс для " << currency << " оновлено: " << newRate << "\n";
+    } else {
+        cout << "[Система] Помилка: Курс має бути додатнім.\n";
+    }
+}
+
 // --- AccountManager ---
 
 string AccountManager::generateTxId() { return to_string(transactionCounter++); }
