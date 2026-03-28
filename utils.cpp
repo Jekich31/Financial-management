@@ -10,7 +10,11 @@
 using namespace std;
 
 void clearScreen() {
-    system("cls"); // Для Windows
+#ifdef _WIN32
+    system("cls");
+#else
+    system("clear");
+#endif
 }
 
 void waitUser() {
@@ -34,31 +38,34 @@ double getValidDouble() {
     }
 }
 
-bool parseAndValidateDate(const string& input, string& standardizedDate) {
-    smatch match;
-    regex formatDayFirst("^(\\d{1,2})[./-](\\d{1,2})[./-](\\d{4})$");
-    regex formatYearFirst("^(\\d{4})[./-](\\d{1,2})[./-](\\d{1,2})$");
-
+bool parseAndValidateDate(const std::string& input, std::string& standardizedDate) {
     int d = 0, m = 0, y = 0;
-    if (regex_match(input, match, formatDayFirst)) {
-        d = stoi(match[1]); m = stoi(match[2]); y = stoi(match[3]);
-    }
-    else if (regex_match(input, match, formatYearFirst)) {
-        y = stoi(match[1]); m = stoi(match[2]); d = stoi(match[3]);
-    }
-    else {
-        return false;
+    char sep1, sep2;
+
+    std::stringstream ss(input);
+    ss >> d >> sep1 >> m >> sep2 >> y;
+
+    if (ss.fail() || (sep1 != '.' && sep1 != '/' && sep1 != '-') || sep1 != sep2) {
+        std::stringstream ssRev(input);
+        ssRev >> y >> sep1 >> m >> sep2 >> d;
+        if (ssRev.fail() || (sep1 != '.' && sep1 != '/' && sep1 != '-') || sep1 != sep2) {
+            return false;
+        }
     }
 
     if (m < 1 || m > 12) return false;
 
-    int daysInMonth[] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-    if ((y % 4 == 0 && y % 100 != 0) || (y % 400 == 0)) daysInMonth[2] = 29;
+    int daysInMonth[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    if ((y % 4 == 0 && y % 100 != 0) || (y % 400 == 0)) {
+        daysInMonth[2] = 29;
+    }
+    
     if (d < 1 || d > daysInMonth[m]) return false;
 
-    ostringstream oss;
-    oss << y << "-" << setfill('0') << setw(2) << m << "-" << setw(2) << d;
+    std::ostringstream oss;
+    oss << y << "-" << std::setfill('0') << std::setw(2) << m << "-" << std::setw(2) << d;
     standardizedDate = oss.str();
+    
     return true;
 }
 
@@ -66,6 +73,7 @@ string getValidDate(AppLanguage lang) {
     string input, stdDate;
     while (true) {
         cin >> input;
+        if (input == "0")return "0";
         if (parseAndValidateDate(input, stdDate)) return stdDate;
         if (lang == AppLanguage::Ukrainian) cout << "Некоректна дата! Використовуйте DD.MM.YYYY: ";
         else cout << "Invalid date! Use DD.MM.YYYY: ";
