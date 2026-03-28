@@ -4,6 +4,7 @@
 #include <sstream>
 #include <limits>
 #include <vector>
+#include <ctime>
 #include "globals.h"
 #include "utils.h"
 #include "models.h"
@@ -324,10 +325,11 @@ int main() {
             }
         }
 
-        // ==========================================
+
+// ==========================================
         // ПІДМЕНЮ 3: ІСТОРІЯ ТА ЗВІТИ
         // ==========================================
-else if (mainChoice == 3) {
+        else if (mainChoice == 3) {
             while (true) {
                 clearScreen();
                 if (lang == AppLanguage::Ukrainian) {
@@ -349,6 +351,7 @@ else if (mainChoice == 3) {
                 int sub; if (!(cin >> sub)) { cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); continue; }
                 if (sub == 0) break;
 
+                // --- 1. ВИПИСКА ПО РАХУНКУ ---
                 if (sub == 1) {
                     clearScreen(); showFastAccountList(manager, currentUser, lang);
                     cout << ((lang == AppLanguage::Ukrainian) ? "Введіть ID рахунку (0-відміна): " : "Enter Account ID (0-cancel): ");
@@ -373,70 +376,111 @@ else if (mainChoice == 3) {
                     }
                     waitUser();
                 }
-                else if (sub == 2 || sub == 3) {
+                
+                // --- 2, 3, 4. АНАЛІТИКА ТА ЗВІТИ ---
+                else if (sub >= 2 && sub <= 4) {
                     clearScreen();
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Початкова дата (0-відміна): " : "Start date (0-cancel): ");
-                    string startDate = getValidDate(lang); if (startDate == "0") continue;
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Кінцева дата: " : "End date: ");
-                    string endDate = getValidDate(lang);
+                    
+                    // --- МЕНЮ ВИБОРУ ДАТИ ---
+                    if (lang == AppLanguage::Ukrainian) {
+                        cout << "--- ВИБІР ПЕРІОДУ ---\n";
+                        cout << "1. За останній тиждень\n";
+                        cout << "2. За останній місяць\n";
+                        cout << "3. За останній рік\n";
+                        cout << "4. Ввести дати вручну\n";
+                        cout << "0. <-- Відміна\n> ";
+                    } else {
+                        cout << "--- SELECT PERIOD ---\n";
+                        cout << "1. Last week\n";
+                        cout << "2. Last month\n";
+                        cout << "3. Last year\n";
+                        cout << "4. Custom dates\n";
+                        cout << "0. <-- Cancel\n> ";
+                    }
 
+                    int periodChoice; 
+                    if (!(cin >> periodChoice)) { cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); continue; }
+                    if (periodChoice == 0) continue;
+
+                    string startDate, endDate;
+
+                    if (periodChoice >= 1 && periodChoice <= 3) {
+                        // Автоматична генерація дат
+                        time_t now = time(nullptr);
+                        tm* endTm = localtime(&now);
+                        char bufEnd[11];
+                        snprintf(bufEnd, sizeof(bufEnd), "%04d-%02d-%02d", 1900 + endTm->tm_year, 1 + endTm->tm_mon, endTm->tm_mday);
+                        endDate = bufEnd;
+
+                        time_t start = now;
+                        if (periodChoice == 1) start -= 7 * 24 * 60 * 60;
+                        else if (periodChoice == 2) start -= 30 * 24 * 60 * 60;
+                        else if (periodChoice == 3) start -= 365 * 24 * 60 * 60;
+                        
+                        tm* startTm = localtime(&start);
+                        char bufStart[11];
+                        snprintf(bufStart, sizeof(bufStart), "%04d-%02d-%02d", 1900 + startTm->tm_year, 1 + startTm->tm_mon, startTm->tm_mday);
+                        startDate = bufStart;
+
+                        cout << ((lang == AppLanguage::Ukrainian) ? "\n[Згенерований період]: " : "\n[Generated period]: ") 
+                             << startDate << " -> " << endDate << "\n";
+                    } else {
+                        // Ручне введення
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Початкова дата (DD.MM.YYYY): " : "Start date (DD.MM.YYYY): ");
+                        startDate = getValidDate(lang); 
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Кінцева дата (DD.MM.YYYY): " : "End date (DD.MM.YYYY): ");
+                        endDate = getValidDate(lang);
+                    }
+
+                    // --- ГЕНЕРАЦІЯ ЗВІТІВ ---
                     if (sub == 2) {
                         auto top = ReportGenerator::getTop3Expenses(manager.getTransactionsForUser(currentUser), startDate, endDate);
                         cout << "\n=== TOP-3 ===\n";
-                        if (top.empty()) cout << ((lang == AppLanguage::Ukrainian) ? "Немає витрат.\n" : "No expenses.\n");
+                        if (top.empty()) cout << ((lang == AppLanguage::Ukrainian) ? "Немає витрат за цей період.\n" : "No expenses for this period.\n");
                         for (size_t i = 0; i < top.size(); ++i) {
                             cout << i + 1 << ". [" << top[i].userName << "] " << top[i].category << " - " << top[i].amount << " | " << top[i].date << "\n";
                         }
-                    } else {
+                    } 
+                    else if (sub == 3) {
                         auto stats = ReportGenerator::getExpensesByUser(manager.getTransactionsForUser(currentUser), startDate, endDate);
-                        cout << "\n=== " << ((lang == AppLanguage::Ukrainian) ? "ВИТРАТИ" : "EXPENSES") << " ===\n";
-                        if (stats.empty()) cout << ((lang == AppLanguage::Ukrainian) ? "Немає витрат.\n" : "No expenses.\n");
+                        cout << "\n=== " << ((lang == AppLanguage::Ukrainian) ? "ВИТРАТИ ПО КОРИСТУВАЧАХ" : "EXPENSES BY USER") << " ===\n";
+                        if (stats.empty()) cout << ((lang == AppLanguage::Ukrainian) ? "Немає витрат за цей період.\n" : "No expenses for this period.\n");
                         for (const auto& pair : stats) cout << "- " << pair.first << ": " << pair.second << "\n";
                     }
-                    waitUser();
-                }
-                else if (sub == 4) {
-                    clearScreen();
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Початкова дата (0-відміна): " : "Start date (0-cancel): ");
-                    string startDate = getValidDate(lang); if (startDate == "0") continue;
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Кінцева дата: " : "End date: ");
-                    string endDate = getValidDate(lang);
-
-                    cout << "\n=== " << ((lang == AppLanguage::Ukrainian) ? "ЗАГАЛЬНИЙ ЗВІТ" : "GENERAL REPORT") << " ===\n";
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Період: " : "Period: ") << startDate << " - " << endDate << "\n\n";
-
-                    bool found = false;
-                    for (const auto& acc : manager.getAccounts()) {
-                        if (acc->hasAccess(currentUser)) {
-                            found = true;
-                            double accInc = 0, accExp = 0, accTrIn = 0, accTrOut = 0;
-                            
-                            for (const auto& tx : acc->getHistory()) {
-                                if (tx.date >= startDate && tx.date <= endDate) {
-                                    if (tx.category == "Transfer" || tx.category == "Transfer In" || tx.category == "Transfer Out") {
-                                        if (tx.isIncome) accTrIn += tx.amount;
-                                        else accTrOut += tx.amount;
-                                    } else if (tx.isIncome) {
-                                        accInc += tx.amount;
-                                    } else {
-                                        accExp += tx.amount;
+                    else if (sub == 4) {
+                        cout << "\n=== " << ((lang == AppLanguage::Ukrainian) ? "ЗАГАЛЬНИЙ ЗВІТ" : "GENERAL REPORT") << " ===\n";
+                        bool found = false;
+                        for (const auto& acc : manager.getAccounts()) {
+                            if (acc->hasAccess(currentUser)) {
+                                found = true;
+                                double accInc = 0, accExp = 0, accTrIn = 0, accTrOut = 0;
+                                
+                                for (const auto& tx : acc->getHistory()) {
+                                    if (tx.date >= startDate && tx.date <= endDate) {
+                                        if (tx.category == "Transfer" || tx.category == "Transfer In" || tx.category == "Transfer Out") {
+                                            if (tx.isIncome) accTrIn += tx.amount;
+                                            else accTrOut += tx.amount;
+                                        } else if (tx.isIncome) {
+                                            accInc += tx.amount;
+                                        } else {
+                                            accExp += tx.amount;
+                                        }
                                     }
                                 }
+                                
+                                cout << "[" << acc->getName() << "] (" << acc->getCurrency() << ")\n";
+                                cout << "  + " << ((lang == AppLanguage::Ukrainian) ? "Доходи: " : "Income: ") << accInc << "\n";
+                                cout << "  - " << ((lang == AppLanguage::Ukrainian) ? "Витрати: " : "Expenses: ") << accExp << "\n";
+                                cout << "  <-> " << ((lang == AppLanguage::Ukrainian) ? "Вхідні перекази: " : "Incoming transfers: ") << accTrIn << "\n";
+                                cout << "  <-> " << ((lang == AppLanguage::Ukrainian) ? "Вихідні перекази: " : "Outgoing transfers: ") << accTrOut << "\n\n";
                             }
-                            
-                            cout << "[" << acc->getName() << "] (" << acc->getCurrency() << ")\n";
-                            cout << "  + " << ((lang == AppLanguage::Ukrainian) ? "Доходи: " : "Income: ") << accInc << "\n";
-                            cout << "  - " << ((lang == AppLanguage::Ukrainian) ? "Витрати: " : "Expenses: ") << accExp << "\n";
-                            cout << "  <-> " << ((lang == AppLanguage::Ukrainian) ? "Вхідні перекази: " : "Incoming transfers: ") << accTrIn << "\n";
-                            cout << "  <-> " << ((lang == AppLanguage::Ukrainian) ? "Вихідні перекази: " : "Outgoing transfers: ") << accTrOut << "\n\n";
                         }
+                        if (!found) cout << ((lang == AppLanguage::Ukrainian) ? "Рахунків не знайдено.\n" : "No accounts found.\n");
                     }
-                    if (!found) cout << ((lang == AppLanguage::Ukrainian) ? "Рахунків не знайдено.\n" : "No accounts found.\n");
                     waitUser();
                 }
             }
         }
-
         // ==========================================
         // ПІДМЕНЮ 4: КАПІТАЛ ТА ВАЛЮТИ
         // ==========================================
@@ -481,21 +525,57 @@ else if (mainChoice == 3) {
                 }
                 else if (sub == 2) { // Оновити курси
                     clearScreen();
+                    cout << ((lang == AppLanguage::Ukrainian) ? "--- ОНОВЛЕННЯ КУРСУ ВАЛЮТ ---\n" : "--- UPDATE EXCHANGE RATES ---\n");
                     cout << ((lang == AppLanguage::Ukrainian) ? "Поточні курси (до UAH):\n" : "Current rates (to UAH):\n");
-                    cout << "USD: " << CurrencyManager::getInstance().getRate("USD") << "\n";
-                    cout << "EUR: " << CurrencyManager::getInstance().getRate("EUR") << "\n\n";
-
-                    string curr;
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Яку валюту оновити? (USD, EUR або 0): " : "Currency to update? (USD, EUR or 0): ");
-                    cin >> curr; if (curr == "0") continue;
-                    transform(curr.begin(), curr.end(), curr.begin(), ::toupper);
                     
-                    if (curr == "USD" || curr == "EUR") {
-                        cout << ((lang == AppLanguage::Ukrainian) ? "Новий курс: " : "New rate: ");
-                        double newRate = getValidDouble();
-                        CurrencyManager::getInstance().updateRate(curr, newRate);
-                        cout << "-> OK!\n";
-                    } else cout << "Error.\n";
+                    auto rates = CurrencyManager::getInstance().getRates();
+                    vector<string> currList;
+                    int i = 1;
+                    
+                    // Виводимо всі валюти, крім базової (UAH)
+                    for (const auto& pair : rates) {
+                        if (pair.first != "UAH") { 
+                            cout << i << ". " << pair.first << ": " << pair.second << "\n";
+                            currList.push_back(pair.first);
+                            i++;
+                        }
+                    }
+                    cout << i << ". " << ((lang == AppLanguage::Ukrainian) ? "[Додати нову валюту]" : "[Add new currency]") << "\n";
+                    cout << "0. " << ((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel") << "\n";
+                    
+                    int currChoice;
+                    cout << "> ";
+                    if (!(cin >> currChoice)) { cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); continue; }
+                    if (currChoice == 0) continue;
+
+                    string targetCurr;
+                    
+                    // Якщо користувач обрав існуючу валюту зі списку
+                    if (currChoice >= 1 && currChoice <= currList.size()) {
+                        targetCurr = currList[currChoice - 1]; 
+                    } 
+                    // Якщо обрав останній пункт "Додати нову"
+                    else if (currChoice == i) {
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Введіть код нової валюти (наприклад, PLN, GBP): " : "Enter new currency code (e.g., PLN, GBP): ");
+                        cin >> targetCurr;
+                        transform(targetCurr.begin(), targetCurr.end(), targetCurr.begin(), ::toupper);
+                        
+                        if (targetCurr == "UAH") {
+                            cout << ((lang == AppLanguage::Ukrainian) ? "Базову валюту не можна змінити.\n" : "Base currency cannot be changed.\n");
+                            waitUser(); continue;
+                        }
+                    } 
+                    else {
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Помилка вибору.\n" : "Selection error.\n");
+                        waitUser(); continue;
+                    }
+
+                    // Запитуємо новий курс і зберігаємо
+                    cout << ((lang == AppLanguage::Ukrainian) ? "Введіть курс (скільки гривень за 1 " : "Enter rate (how many UAH for 1 ") << targetCurr << "): ";
+                    double newRate = getValidDouble();
+                    CurrencyManager::getInstance().updateRate(targetCurr, newRate);
+                    cout << "-> OK!\n";
+                    
                     waitUser();
                 }
             }
