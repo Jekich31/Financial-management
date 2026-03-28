@@ -508,8 +508,7 @@ else if (mainChoice == 3) {
             while (true) {
                 clearScreen();
                 if (lang == AppLanguage::Ukrainian) {
-                    
-                }                    cout << "--- ⚙️ НАЛАШТУВАННЯ ---\n";
+                    cout << "--- ⚙️ НАЛАШТУВАННЯ ---\n";
                     cout << "1. Змінити користувача (Увійти під іншим ім'ям)\n";
                     cout << "2. Змінити мову інтерфейсу\n";
                     cout << "0. <-- Назад до Головного меню\n> ";

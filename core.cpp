@@ -116,7 +116,7 @@ bool AccountManager::deleteAccount(const string& accountId, const string& userNa
 
 bool AccountManager::updateAccount(const string& accountId, const string& userName, const string& newName, double newLimit) {
     auto acc = getAccountById(accountId);
-    if (!acc || acc->getOwner() != userName) {
+    if (!acc || !acc->hasAccess(userName)) {
         cout << "[Система] Помилка доступу або рахунок не знайдено.\n";
         return false;
     }
