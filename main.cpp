@@ -36,7 +36,6 @@ void showFastAccountList(AccountManager& manager, const string& currentUser, App
 }
 
 int main() {
-    system("chcp 65001 > nul");
     setlocale(LC_ALL, "uk_UA.UTF-8");
     AccountManager manager;
     string dbFilename = "finance_data.txt";
