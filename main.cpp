@@ -408,7 +408,7 @@ int main() {
                         // Автоматична генерація дат
                         time_t now = time(nullptr);
                         tm* endTm = localtime(&now);
-                        char bufEnd[11];
+                        char bufEnd[50];
                         snprintf(bufEnd, sizeof(bufEnd), "%04d-%02d-%02d", 1900 + endTm->tm_year, 1 + endTm->tm_mon, endTm->tm_mday);
                         endDate = bufEnd;
 
@@ -418,7 +418,7 @@ int main() {
                         else if (periodChoice == 3) start -= 365 * 24 * 60 * 60;
                         
                         tm* startTm = localtime(&start);
-                        char bufStart[11];
+                        char bufStart[50];
                         snprintf(bufStart, sizeof(bufStart), "%04d-%02d-%02d", 1900 + startTm->tm_year, 1 + startTm->tm_mon, startTm->tm_mday);
                         startDate = bufStart;
 
