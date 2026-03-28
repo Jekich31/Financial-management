@@ -187,7 +187,7 @@ int main() {
                     if (accId == "0") continue;
                     
                     auto acc = manager.getAccountById(accId);
-                    if (acc && acc->getOwner() == currentUser) {
+                    if (acc && acc->hasAccess(currentUser)) {
                         cin.ignore();
                         cout << ((lang == AppLanguage::Ukrainian) ? "Нова назва рахунку: " : "New account name: ");
                         string newName; getline(cin, newName);
@@ -508,7 +508,8 @@ else if (mainChoice == 3) {
             while (true) {
                 clearScreen();
                 if (lang == AppLanguage::Ukrainian) {
-                    cout << "--- ⚙️ НАЛАШТУВАННЯ ---\n";
+                    
+                }                    cout << "--- ⚙️ НАЛАШТУВАННЯ ---\n";
                     cout << "1. Змінити користувача (Увійти під іншим ім'ям)\n";
                     cout << "2. Змінити мову інтерфейсу\n";
                     cout << "0. <-- Назад до Головного меню\n> ";
