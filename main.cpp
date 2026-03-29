@@ -371,6 +371,7 @@ else if (mainChoice == 3) {
                     cout << "2. Звіт: ТОП-3 моїх витрат\n";
                     cout << "3. Звіт: Витрати по користувачах\n";
                     cout << "4. Загальний фінансовий звіт (Доходи, Витрати, Перекази)\n";
+                    cout << "5. Звіт: ТОП-3 категорій витрат\n";
                     cout << "0. <-- Назад до Головного меню\n> ";
                 } else {
                     cout << "--- 📊 HISTORY & REPORTS ---\n";
@@ -378,6 +379,7 @@ else if (mainChoice == 3) {
                     cout << "2. Report: TOP-3 expenses\n";
                     cout << "3. Report: Expenses by user\n";
                     cout << "4. General Financial Report (Income, Expense, Transfers)\n";
+                    cout << "5. Report: TOP-3 expense categories\n";
                     cout << "0. <-- Back to Main Menu\n> ";
                 }
 
@@ -473,6 +475,38 @@ else if (mainChoice == 3) {
                         }
                     }
                     if (!found) cout << ((lang == AppLanguage::Ukrainian) ? "Рахунків не знайдено.\n" : "No accounts found.\n");
+                    waitUser();
+                }
+                else if (sub == 5) {
+                    clearScreen();
+
+                    cout << ((lang == AppLanguage::Ukrainian) ? "Початкова дата (0-відміна): " : "Start date (0-cancel): ");
+                    string startDate = getValidDate(lang);
+                    if (startDate == "0") continue;
+
+                    string endDate = getValidEndDate(startDate, lang);
+                    if (endDate == "0") continue;
+
+                    auto top = ReportGenerator::getTop3Categories(
+                        manager.getTransactionsForUser(currentUser),
+                        startDate,
+                        endDate
+                    );
+
+                    cout << "\n=== TOP-3 "
+                        << ((lang == AppLanguage::Ukrainian) ? "КАТЕГОРІЙ" : "CATEGORIES")
+                        << " ===\n";
+
+                    if (top.empty()) {
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Немає витрат.\n" : "No expenses.\n");
+                    }
+                    else {
+                        for (size_t i = 0; i < top.size(); ++i) {
+                            cout << i + 1 << ". " << top[i].first
+                                << " - " << top[i].second << "\n";
+                        }
+                    }
+
                     waitUser();
                 }
             }

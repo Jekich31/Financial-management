@@ -293,16 +293,30 @@ map<string, double> ReportGenerator::getExpensesByUser(const vector<Transaction>
     }
     return userStats;
 }
-static std::vector<std::pair<std::string, double>> getTop3Categories(const std::vector<Transaction>& history, const std::string& startDate, const std::string& endDate) {
+std::vector<std::pair<std::string, double>> ReportGenerator::getTop3Categories(
+    const std::vector<Transaction>& history,
+    const std::string& startDate,
+    const std::string& endDate)
+{
     std::map<std::string, double> categoryTotals;
+
     for (const auto& t : history) {
-        // ДОДАНО: ігноруємо транзакції з категорією "Transfer"
-        if (!t.isIncome && t.category != "Transfer" && t.date >= startDate && t.date <= endDate) {
+        if (!t.isIncome && t.category != "Transfer" &&
+            t.date >= startDate && t.date <= endDate) {
             categoryTotals[t.category] += t.amount;
         }
     }
-    std::vector<std::pair<std::string, double>> sortedCategories(categoryTotals.begin(), categoryTotals.end());
-    std::sort(sortedCategories.begin(), sortedCategories.end(), [](const auto& a, const auto& b) { return a.second > b.second; });
-    if (sortedCategories.size() > 3) sortedCategories.resize(3);
+
+    std::vector<std::pair<std::string, double>> sortedCategories(
+        categoryTotals.begin(), categoryTotals.end());
+
+    std::sort(sortedCategories.begin(), sortedCategories.end(),
+        [](const auto& a, const auto& b) {
+            return a.second > b.second;
+        });
+
+    if (sortedCategories.size() > 3)
+        sortedCategories.resize(3);
+
     return sortedCategories;
 }

@@ -65,5 +65,8 @@ public:
     static std::map<std::string, double> getExpensesByUser(const std::vector<Transaction>& history, const std::string& startDate, const std::string& endDate);
 
     // Новий звіт за категоріями
-    static std::vector<std::pair<std::string, double>> getTop3Categories(const std::vector<Transaction>& history, const std::string& startDate, const std::string& endDate);
+    static std::vector<std::pair<std::string, double>> getTop3Categories(
+        const std::vector<Transaction>& history,
+        const std::string& startDate,
+        const std::string& endDate);
 };
