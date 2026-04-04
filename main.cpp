@@ -22,7 +22,7 @@ void showFastAccountList(AccountManager& manager, const string& currentUser, App
     for (const auto& acc : accounts) {
         if (acc->hasAccess(currentUser)) {
             cout << " > [" << acc->getId() << "] " << acc->getName()
-                 << " (" << acc->getBalance() << " " << acc->getCurrency() << ")";
+                << " (" << acc->getBalance() << " " << acc->getCurrency() << ")";
             if (acc->isShared()) cout << ((lang == AppLanguage::Ukrainian) ? " (Спільний)" : " (Shared)");
             cout << "\n";
             found = true;
@@ -66,7 +66,7 @@ string getValidEndDate(const string& startDate, AppLanguage lang) {
             : "Error: End date cannot be before start date!") << endl;
     }
 }
- 
+
 
 
 int main() {
@@ -108,7 +108,8 @@ int main() {
             cout << "5. ⚙️ Налаштування (Змінити мову / користувача)\n";
             cout << "0. ❌ Вимкнути програму\n";
             cout << "Ваш вибір: ";
-        } else {
+        }
+        else {
             cout << "Current user: [" << currentUser << "]\n";
             cout << "=========================================\n";
             cout << "1. 💼 Accounts (View, Create, Edit...)\n";
@@ -144,7 +145,8 @@ int main() {
                     cout << "3. Редагувати рахунок\n";
                     cout << "4. Видалити рахунок\n";
                     cout << "0. <-- Назад до Головного меню\n> ";
-                } else {
+                }
+                else {
                     cout << "--- 💼 ACCOUNT MANAGEMENT ---\n";
                     cout << "1. View my accounts\n";
                     cout << "2. Create new account\n";
@@ -171,12 +173,12 @@ int main() {
                         cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
                     }
                     if (type == 0) continue;
-                    
+
                     cin.ignore();
                     string name, currency;
                     cout << ((lang == AppLanguage::Ukrainian) ? "Назва рахунку: " : "Account name: ");
                     getline(cin, name);
-                    
+
                     int currChoice;
                     cout << ((lang == AppLanguage::Ukrainian) ? "Оберіть валюту (1-UAH, 2-USD, 3-EUR): " : "Choose currency (1-UAH, 2-USD, 3-EUR): ");
                     while (!(cin >> currChoice) || currChoice < 1 || currChoice > 3) {
@@ -186,15 +188,15 @@ int main() {
                     if (currChoice == 1) currency = "UAH";
                     else if (currChoice == 2) currency = "USD";
                     else currency = "EUR";
-                    
+
                     string newId = manager.generateAccId();
-                    
+
                     if (type == 2) {
                         cout << ((lang == AppLanguage::Ukrainian) ? "Кредитний ліміт: " : "Credit limit: ");
                         double limit = getValidDouble();
                         cout << ((lang == AppLanguage::Ukrainian) ? "Власні кошти (початковий баланс): " : "Own funds (initial balance): ");
                         double initialBalance = getValidDouble();
-                        
+
                         auto newCard = make_shared<CreditCard>(newId, sanitize(name), currency, sanitize(currentUser), limit);
                         if (initialBalance > 0) newCard->deposit(initialBalance);
                         manager.addAccount(newCard);
@@ -220,7 +222,7 @@ int main() {
                     cout << ((lang == AppLanguage::Ukrainian) ? "ID рахунку для зміни (0-відміна): " : "Account ID to edit (0-cancel): ");
                     string accId; cin >> accId;
                     if (accId == "0") continue;
-                    
+
                     auto acc = manager.getAccountById(accId);
                     if (acc && acc->getOwner() == currentUser) {
                         cin.ignore();
@@ -234,7 +236,8 @@ int main() {
                         if (manager.updateAccount(accId, currentUser, newName, newLimit)) {
                             StorageManager::saveToFile(manager, dbFilename);
                         }
-                    } else {
+                    }
+                    else {
                         cout << ((lang == AppLanguage::Ukrainian) ? "-> Помилка доступу!\n" : "-> Access denied!\n");
                     }
                     waitUser();
@@ -245,6 +248,9 @@ int main() {
                     string accId; cin >> accId;
                     if (accId != "0" && manager.deleteAccount(accId, currentUser)) {
                         StorageManager::saveToFile(manager, dbFilename);
+                    }
+                    else if (accId == "0") {
+                        continue;
                     }
                     waitUser();
                 }
@@ -263,7 +269,8 @@ int main() {
                     cout << "2. Внести витрату\n";
                     cout << "3. Переказ між рахунками\n";
                     cout << "0. <-- Назад до Головного меню\n> ";
-                } else {
+                }
+                else {
                     cout << "--- 💸 TRANSACTIONS ---\n";
                     cout << "1. Add income\n";
                     cout << "2. Add expense\n";
@@ -314,18 +321,19 @@ int main() {
                     string date = getValidDate(lang);
 
                     bool success = (sub == 1) ? manager.makeIncome(accId, amount, category, desc, date, actingUser)
-                                              : manager.makeExpense(accId, amount, category, desc, date, actingUser);
+                        : manager.makeExpense(accId, amount, category, desc, date, actingUser);
                     if (success) {
                         StorageManager::saveToFile(manager, dbFilename);
                         cout << ((lang == AppLanguage::Ukrainian) ? "-> Операція успішна!\n" : "-> Operation successful!\n");
-                    } else cout << ((lang == AppLanguage::Ukrainian) ? "-> Помилка! Недостатньо коштів.\n" : "-> Error! Insufficient funds.\n");
+                    }
+                    else cout << ((lang == AppLanguage::Ukrainian) ? "-> Помилка! Недостатньо коштів.\n" : "-> Error! Insufficient funds.\n");
                     waitUser();
                 }
                 else if (sub == 3) { // Переказ
                     clearScreen(); showFastAccountList(manager, currentUser, lang);
                     cout << ((lang == AppLanguage::Ukrainian) ? "ID ВІДПРАВНИКА (0-відміна): " : "SENDER ID (0-cancel): ");
                     string fromId; cin >> fromId; if (fromId == "0") continue;
-                    
+
                     cout << ((lang == AppLanguage::Ukrainian) ? "ID ОТРИМУВАЧА: " : "RECEIVER ID: ");
                     string toId; cin >> toId;
 
@@ -339,8 +347,8 @@ int main() {
                     if (accFrom->getCurrency() != accTo->getCurrency()) {
                         double rateFrom = CurrencyManager::getInstance().getRate(accFrom->getCurrency());
                         double rateTo = CurrencyManager::getInstance().getRate(accTo->getCurrency());
-                        cout << "\n[!] " << ((lang == AppLanguage::Ukrainian) ? "Курс переказу: " : "Transfer rate: ") 
-                             << "1 " << accFrom->getCurrency() << " = " << (rateFrom / rateTo) << " " << accTo->getCurrency() << "\n\n";
+                        cout << "\n[!] " << ((lang == AppLanguage::Ukrainian) ? "Курс переказу: " : "Transfer rate: ")
+                            << "1 " << accFrom->getCurrency() << " = " << (rateFrom / rateTo) << " " << accTo->getCurrency() << "\n\n";
                     }
 
                     cout << ((lang == AppLanguage::Ukrainian) ? "Сума переказу: " : "Transfer amount: ");
@@ -351,7 +359,8 @@ int main() {
                     if (manager.transferFunds(fromId, toId, amount, date, currentUser)) {
                         StorageManager::saveToFile(manager, dbFilename);
                         cout << ((lang == AppLanguage::Ukrainian) ? "-> Переказ виконано!\n" : "-> Transfer successful!\n");
-                    } else {
+                    }
+                    else {
                         cout << ((lang == AppLanguage::Ukrainian) ? "-> Помилка переказу.\n" : "-> Transfer error.\n");
                     }
                     waitUser();
@@ -362,7 +371,7 @@ int main() {
         // ==========================================
         // ПІДМЕНЮ 3: ІСТОРІЯ ТА ЗВІТИ
         // ==========================================
-else if (mainChoice == 3) {
+        else if (mainChoice == 3) {
             while (true) {
                 clearScreen();
                 if (lang == AppLanguage::Ukrainian) {
@@ -373,7 +382,8 @@ else if (mainChoice == 3) {
                     cout << "4. Загальний фінансовий звіт (Доходи, Витрати, Перекази)\n";
                     cout << "5. Звіт: ТОП-3 категорій витрат\n";
                     cout << "0. <-- Назад до Головного меню\n> ";
-                } else {
+                }
+                else {
                     cout << "--- 📊 HISTORY & REPORTS ---\n";
                     cout << "1. Account Statement (Transaction history)\n";
                     cout << "2. Report: TOP-3 expenses\n";
@@ -390,11 +400,13 @@ else if (mainChoice == 3) {
                     clearScreen(); showFastAccountList(manager, currentUser, lang);
                     cout << ((lang == AppLanguage::Ukrainian) ? "Введіть ID рахунку (0-відміна): " : "Enter Account ID (0-cancel): ");
                     string accId; cin >> accId;
+                    if (accId == "0") continue;
                     if (accId != "0") {
                         auto acc = manager.getAccountById(accId);
                         if (!acc || !acc->hasAccess(currentUser)) {
                             cout << ((lang == AppLanguage::Ukrainian) ? "Помилка доступу.\n" : "Access denied.\n");
-                        } else {
+                        }
+                        else {
                             cout << "\n=== " << ((lang == AppLanguage::Ukrainian) ? "ІСТОРІЯ: " : "HISTORY: ") << acc->getName() << " ===\n";
                             auto hist = acc->getHistory();
                             if (hist.empty()) cout << ((lang == AppLanguage::Ukrainian) ? "Порожньо.\n" : "Empty.\n");
@@ -402,8 +414,8 @@ else if (mainChoice == 3) {
                                 for (const auto& tx : hist) {
                                     string sym = tx.isIncome ? "+" : "-";
                                     if (tx.category == "Transfer" || tx.category == "Transfer In" || tx.category == "Transfer Out") sym = "<->";
-                                    cout << "[" << tx.date << "] " << sym << " " << tx.amount << " " << acc->getCurrency() 
-                                         << " | " << tx.category << " | " << tx.description << " (" << tx.userName << ")\n";
+                                    cout << "[" << tx.date << "] " << sym << " " << tx.amount << " " << acc->getCurrency()
+                                        << " | " << tx.category << " | " << tx.description << " (" << tx.userName << ")\n";
                                 }
                             }
                         }
@@ -427,7 +439,8 @@ else if (mainChoice == 3) {
                         for (size_t i = 0; i < top.size(); ++i) {
                             cout << i + 1 << ". [" << top[i].userName << "] " << top[i].category << " - " << top[i].amount << " | " << top[i].date << "\n";
                         }
-                    } else {
+                    }
+                    else {
                         auto stats = ReportGenerator::getExpensesByUser(manager.getTransactionsForUser(currentUser), startDate, endDate);
                         cout << "\n=== " << ((lang == AppLanguage::Ukrainian) ? "ВИТРАТИ" : "EXPENSES") << " ===\n";
                         if (stats.empty()) cout << ((lang == AppLanguage::Ukrainian) ? "Немає витрат.\n" : "No expenses.\n");
@@ -453,20 +466,22 @@ else if (mainChoice == 3) {
                         if (acc->hasAccess(currentUser)) {
                             found = true;
                             double accInc = 0, accExp = 0, accTrIn = 0, accTrOut = 0;
-                            
+
                             for (const auto& tx : acc->getHistory()) {
                                 if (tx.date >= startDate && tx.date <= endDate) {
                                     if (tx.category == "Transfer" || tx.category == "Transfer In" || tx.category == "Transfer Out") {
                                         if (tx.isIncome) accTrIn += tx.amount;
                                         else accTrOut += tx.amount;
-                                    } else if (tx.isIncome) {
+                                    }
+                                    else if (tx.isIncome) {
                                         accInc += tx.amount;
-                                    } else {
+                                    }
+                                    else {
                                         accExp += tx.amount;
                                     }
                                 }
                             }
-                            
+
                             cout << "[" << acc->getName() << "] (" << acc->getCurrency() << ")\n";
                             cout << "  + " << ((lang == AppLanguage::Ukrainian) ? "Доходи: " : "Income: ") << accInc << "\n";
                             cout << "  - " << ((lang == AppLanguage::Ukrainian) ? "Витрати: " : "Expenses: ") << accExp << "\n";
@@ -523,7 +538,8 @@ else if (mainChoice == 3) {
                     cout << "1. Розрахувати мій Загальний капітал\n";
                     cout << "2. Оновити курси валют\n";
                     cout << "0. <-- Назад до Головного меню\n> ";
-                } else {
+                }
+                else {
                     cout << "--- 🌍 TOTAL NET WORTH & CURRENCIES ---\n";
                     cout << "1. Calculate my Total Net Worth\n";
                     cout << "2. Update exchange rates\n";
@@ -535,21 +551,32 @@ else if (mainChoice == 3) {
 
                 if (sub == 1) { // Капітал
                     clearScreen();
-                    string targetCurr;
-                    cout << ((lang == AppLanguage::Ukrainian) ? "В якій валюті рахувати? (UAH, USD, EUR): " : "Target currency? (UAH, USD, EUR): ");
-                    cin >> targetCurr; transform(targetCurr.begin(), targetCurr.end(), targetCurr.begin(), ::toupper);
-                    
+                    int targetCurr;
+                    cout << ((lang == AppLanguage::Ukrainian) ? "Оберіть валюту (0-Вихід, 1-UAH, 2-USD, 3-EUR): " : "Choose currency (0-exit, 1-UAH, 2-USD, 3-EUR): ");
+                    while (!(cin >> targetCurr) || targetCurr < 0 || targetCurr > 3) {
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Помилка! Введіть 1, 2 або 3: " : "Error! Enter 1, 2 or 3: ");
+                        cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    }
+                    if (targetCurr == 0) continue;
+                    std::string currencyStr;
+                    switch (targetCurr) {
+                    case 1: currencyStr = "UAH"; break;
+                    case 2: currencyStr = "USD"; break;
+                    case 3: currencyStr = "EUR"; break;
+                    default: currencyStr = "UNKNOWN"; break;
+                    }
                     double total = 0.0; bool hasAcc = false;
                     try {
                         for (const auto& acc : manager.getAccounts()) {
                             if (acc->hasAccess(currentUser)) {
                                 hasAcc = true;
-                                total += CurrencyManager::getInstance().convert(acc->getBalance(), acc->getCurrency(), targetCurr);
+                                total += CurrencyManager::getInstance().convert(acc->getBalance(), acc->getCurrency(), currencyStr);
                             }
                         }
                         if (!hasAcc) cout << ((lang == AppLanguage::Ukrainian) ? "Рахунків немає.\n" : "No accounts.\n");
-                        else cout << "\n" << ((lang == AppLanguage::Ukrainian) ? "Загальний баланс: " : "Total balance: ") << total << " " << targetCurr << "\n";
-                    } catch (...) {
+                        else cout << "\n" << ((lang == AppLanguage::Ukrainian) ? "Загальний баланс: " : "Total balance: ") << total << " " << currencyStr << "\n";
+                    }
+                    catch (...) {
                         cout << ((lang == AppLanguage::Ukrainian) ? "Помилка! Валюта не підтримується.\n" : "Error! Currency not supported.\n");
                     }
                     waitUser();
@@ -564,13 +591,14 @@ else if (mainChoice == 3) {
                     cout << ((lang == AppLanguage::Ukrainian) ? "Яку валюту оновити? (USD, EUR або 0): " : "Currency to update? (USD, EUR or 0): ");
                     cin >> curr; if (curr == "0") continue;
                     transform(curr.begin(), curr.end(), curr.begin(), ::toupper);
-                    
+
                     if (curr == "USD" || curr == "EUR") {
                         cout << ((lang == AppLanguage::Ukrainian) ? "Новий курс: " : "New rate: ");
                         double newRate = getValidDouble();
                         CurrencyManager::getInstance().updateRate(curr, newRate);
                         cout << "-> OK!\n";
-                    } else cout << "Error.\n";
+                    }
+                    else cout << "Error.\n";
                     waitUser();
                 }
             }
@@ -587,7 +615,8 @@ else if (mainChoice == 3) {
                     cout << "1. Змінити користувача (Увійти під іншим ім'ям)\n";
                     cout << "2. Змінити мову інтерфейсу\n";
                     cout << "0. <-- Назад до Головного меню\n> ";
-                } else {
+                }
+                else {
                     cout << "--- ⚙️ SETTINGS ---\n";
                     cout << "1. Change user (Login as...)\n";
                     cout << "2. Change interface language\n";
@@ -599,8 +628,9 @@ else if (mainChoice == 3) {
 
                 if (sub == 1) { // Змінити користувача
                     cin.ignore(); clearScreen();
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Введіть ім'я:\n> " : "Enter name:\n> ");
+                    cout << ((lang == AppLanguage::Ukrainian) ? "Введіть ім'я (0-вихід):\n> " : "Enter name (0-exit):\n> ");
                     getline(cin, currentUser);
+                    if (currentUser == "0") continue;
                     cout << "-> OK: " << currentUser << "!\n";
                     waitUser(); break; // Виходимо в головне меню після зміни
                 }
@@ -608,10 +638,12 @@ else if (mainChoice == 3) {
                     clearScreen();
                     cout << "Оберіть мову / Choose language:\n1. Українська\n2. English\n0. Cancel\n> ";
                     int newLang;
+
                     if (cin >> newLang && (newLang == 1 || newLang == 2)) {
                         lang = (newLang == 2) ? AppLanguage::English : AppLanguage::Ukrainian;
                         cout << "-> OK!\n";
                     }
+                    else if (newLang == 0) continue;
                     waitUser();
                 }
             }
