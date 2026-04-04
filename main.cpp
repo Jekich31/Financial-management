@@ -167,7 +167,7 @@ int main() {
                 else if (sub == 2) { // Створення рахунку
                     clearScreen();
                     int type;
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Тип (0-Відміна, 1-Гаманець, 2-Кредитка, 3-Спільний бюджет): " : "Type (0-Cancel, 1-Wallet, 2-Credit Card, 3-Shared Budget): ");
+                    cout << ((lang == AppLanguage::Ukrainian) ? "Тип (0-Відміна, 1-Скарбничка, 2-Кредитка, 3-Спільний бюджет): " : "Type (0-Cancel, 1-Debit wallet, 2-Credit Card, 3-Shared Budget): ");
                     while (!(cin >> type) || (type < 0 || type > 3)) {
                         cout << ((lang == AppLanguage::Ukrainian) ? "Помилка! Введіть 0, 1, 2 або 3: " : "Error! Enter 0, 1, 2 or 3: ");
                         cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
