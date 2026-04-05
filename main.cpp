@@ -8,7 +8,7 @@
 #include "utils.h"
 #include "models.h"
 #include "core.h"
-
+#include "test.h"
 using namespace std;
 
 // Допоміжна функція для швидкого показу рахунків
@@ -79,16 +79,11 @@ int main() {
 
     clearScreen();
     cout << "Оберіть мову / Choose language:\n1. Українська\n2. English\n> ";
-    int langChoice;
-    while (!(cin >> langChoice) || (langChoice != 1 && langChoice != 2)) {
-        cout << "Помилка вводу. 1 або 2: ";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-    AppLanguage lang = (langChoice == 2) ? AppLanguage::English : AppLanguage::Ukrainian;
+    vector<string> langOptions = { "Українська", "English" };
+    int langIdx = interactiveMenu("Оберіть мову / Choose language:", langOptions);
+    AppLanguage lang = (langIdx == 1) ? AppLanguage::English : AppLanguage::Ukrainian;
 
     string currentUser;
-    cin.ignore();
     clearScreen();
     cout << ((lang == AppLanguage::Ukrainian) ? "Увійдіть у систему (Введіть ваше ім'я):\n> " : "Log in (Enter your name):\n> ");
     getline(cin, currentUser);
@@ -97,33 +92,39 @@ int main() {
     // ГОЛОВНИЙ ЦИКЛ ПРОГРАМИ
     // ==========================================
     while (true) {
-        clearScreen();
+        string header = (lang == AppLanguage::Ukrainian)
+            ? "Поточний користувач: [" + currentUser + "]"
+            : "Current user: [" + currentUser + "]";
+
+        vector<string> menuOptions;
         if (lang == AppLanguage::Ukrainian) {
-            cout << "Поточний користувач: [" << currentUser << "]\n";
-            cout << "=========================================\n";
-            cout << "1. 💼 Рахунки (Перегляд, Створення, Редагування...)\n";
-            cout << "2. 💸 Транзакції (Доходи, Витрати, Перекази)\n";
-            cout << "3. 📊 Історія та Звіти (Виписка, ТОП-3 витрат...)\n";
-            cout << "4. 🌍 Капітал та Курси валют\n";
-            cout << "5. ⚙️ Налаштування (Змінити мову / користувача)\n";
-            cout << "0. ❌ Вимкнути програму\n";
-            cout << "Ваш вибір: ";
+            menuOptions = {
+                "💼 Рахунки (Перегляд, Створення, Редагування...)",
+                "💸 Транзакції (Доходи, Витрати, Перекази)",
+                "📊 Історія та Звіти (Виписка, ТОП-3 витрат...)",
+                "🌍 Капітал та Курси валют",
+                "⚙️ Налаштування (Змінити мову / користувача)",
+                "❌ Вимкнути програму"
+            };
         }
         else {
-            cout << "Current user: [" << currentUser << "]\n";
-            cout << "=========================================\n";
-            cout << "1. 💼 Accounts (View, Create, Edit...)\n";
-            cout << "2. 💸 Transactions (Income, Expenses, Transfers)\n";
-            cout << "3. 📊 History & Reports (Statement, TOP-3...)\n";
-            cout << "4. 🌍 Total Net Worth & Exchange Rates\n";
-            cout << "5. ⚙️ Settings (Change language / user)\n";
-            cout << "0. ❌ Exit program\n";
-            cout << "Your choice: ";
+            menuOptions = {
+                "💼 Accounts (View, Create, Edit...)",
+                "💸 Transactions (Income, Expenses, Transfers)",
+                "📊 History & Reports (Statement, TOP-3...)",
+                "🌍 Total Net Worth & Exchange Rates",
+                "⚙️ Settings (Change language / user)",
+                "❌ Exit program"
+            };
         }
+        int selectedIndex = interactiveMenu(header, menuOptions);
 
         int mainChoice;
-        if (!(cin >> mainChoice)) {
-            cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); continue;
+        if (selectedIndex == 5) {
+            mainChoice = 0;
+        }
+        else {
+            mainChoice = selectedIndex + 1;
         }
 
         if (mainChoice == 0) {
@@ -137,25 +138,36 @@ int main() {
         // ==========================================
         else if (mainChoice == 1) {
             while (true) {
-                clearScreen();
+                string header = (lang == AppLanguage::Ukrainian)
+                    ? "--- 💼 УПРАВЛІННЯ РАХУНКАМИ ---"
+                    : "--- 💼 ACCOUNT MANAGEMENT ---";
+
+                vector<string> options;
                 if (lang == AppLanguage::Ukrainian) {
-                    cout << "--- 💼 УПРАВЛІННЯ РАХУНКАМИ ---\n";
-                    cout << "1. Переглянути мої рахунки\n";
-                    cout << "2. Створити новий рахунок\n";
-                    cout << "3. Редагувати рахунок\n";
-                    cout << "4. Видалити рахунок\n";
-                    cout << "0. <-- Назад до Головного меню\n> ";
+                    options = {
+                        "1. Переглянути мої рахунки",
+                        "2. Створити новий рахунок",
+                        "3. Редагувати рахунок",
+                        "4. Видалити рахунок",
+                        "0. <-- Назад до Головного меню"
+                    };
                 }
                 else {
-                    cout << "--- 💼 ACCOUNT MANAGEMENT ---\n";
-                    cout << "1. View my accounts\n";
-                    cout << "2. Create new account\n";
-                    cout << "3. Edit account\n";
-                    cout << "4. Delete account\n";
-                    cout << "0. <-- Back to Main Menu\n> ";
+                    options = {
+                        "1. View my accounts",
+                        "2. Create new account",
+                        "3. Edit account",
+                        "4. Delete account",
+                        "0. <-- Back to Main Menu"
+                    };
                 }
 
-                int sub; if (!(cin >> sub)) { cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); continue; }
+                int sel = interactiveMenu(header, options);
+
+                // Переводимо індекс меню (0..4) у ваш старий формат sub
+                int sub;
+                if (sel == 4) sub = 0; // Останній пункт - це "Назад" (0)
+                else sub = sel + 1;
                 if (sub == 0) break; // Повернення в головне меню
 
                 if (sub == 1) { // Перегляд балансу
@@ -262,23 +274,33 @@ int main() {
         // ==========================================
         else if (mainChoice == 2) {
             while (true) {
-                clearScreen();
+                string header = (lang == AppLanguage::Ukrainian)
+                    ? "--- 💸 ТРАНЗАКЦІЇ ---"
+                    : "--- 💸 TRANSACTIONS ---";
+
+                vector<string> options;
                 if (lang == AppLanguage::Ukrainian) {
-                    cout << "--- 💸 ТРАНЗАКЦІЇ ---\n";
-                    cout << "1. Поповнити рахунок (Дохід)\n";
-                    cout << "2. Внести витрату\n";
-                    cout << "3. Переказ між рахунками\n";
-                    cout << "0. <-- Назад до Головного меню\n> ";
+                    options = {
+                        "1. Поповнити рахунок (Дохід)",
+                        "2. Внести витрату",
+                        "3. Переказ між рахунками",
+                        "0. <-- Назад до Головного меню"
+                    };
                 }
                 else {
-                    cout << "--- 💸 TRANSACTIONS ---\n";
-                    cout << "1. Add income\n";
-                    cout << "2. Add expense\n";
-                    cout << "3. Transfer funds\n";
-                    cout << "0. <-- Back to Main Menu\n> ";
+                    options = {
+                        "1. Add income",
+                        "2. Add expense",
+                        "3. Transfer funds",
+                        "0. <-- Back to Main Menu"
+                    };
                 }
 
-                int sub; if (!(cin >> sub)) { cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); continue; }
+                int sel = interactiveMenu(header, options);
+
+                int sub;
+                if (sel == 3) sub = 0; // Останній пункт (індекс 3) - це "Назад"
+                else sub = sel + 1;
                 if (sub == 0) break;
 
                 if (sub == 1 || sub == 2) { // Дохід або Витрата
@@ -373,27 +395,32 @@ int main() {
         // ==========================================
         else if (mainChoice == 3) {
             while (true) {
-                clearScreen();
+                string header = (lang == AppLanguage::Ukrainian) ? "--- 📊 ІСТОРІЯ ТА ЗВІТИ ---" : "--- 📊 HISTORY & REPORTS ---";
+                vector<string> options;
+
                 if (lang == AppLanguage::Ukrainian) {
-                    cout << "--- 📊 ІСТОРІЯ ТА ЗВІТИ ---\n";
-                    cout << "1. Виписка по рахунку (Історія транзакцій)\n";
-                    cout << "2. Звіт: ТОП-3 моїх витрат\n";
-                    cout << "3. Звіт: Витрати по користувачах\n";
-                    cout << "4. Загальний фінансовий звіт (Доходи, Витрати, Перекази)\n";
-                    cout << "5. Звіт: ТОП-3 категорій витрат\n";
-                    cout << "0. <-- Назад до Головного меню\n> ";
+                    options = {
+                        "1. Виписка по рахунку (Історія транзакцій)",
+                        "2. Звіт: ТОП-3 моїх витрат",
+                        "3. Звіт: Витрати по користувачах",
+                        "4. Загальний фінансовий звіт",
+                        "5. Звіт: ТОП-3 категорій витрат",
+                        "0. <-- Назад до Головного меню"
+                    };
                 }
                 else {
-                    cout << "--- 📊 HISTORY & REPORTS ---\n";
-                    cout << "1. Account Statement (Transaction history)\n";
-                    cout << "2. Report: TOP-3 expenses\n";
-                    cout << "3. Report: Expenses by user\n";
-                    cout << "4. General Financial Report (Income, Expense, Transfers)\n";
-                    cout << "5. Report: TOP-3 expense categories\n";
-                    cout << "0. <-- Back to Main Menu\n> ";
+                    options = {
+                        "1. Account Statement",
+                        "2. Report: TOP-3 expenses",
+                        "3. Report: Expenses by user",
+                        "4. General Financial Report",
+                        "5. Report: TOP-3 expense categories",
+                        "0. <-- Back to Main Menu"
+                    };
                 }
 
-                int sub; if (!(cin >> sub)) { cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); continue; }
+                int sel = interactiveMenu(header, options);
+                int sub = (sel == 5) ? 0 : sel + 1;
                 if (sub == 0) break;
 
                 if (sub == 1) {
@@ -532,21 +559,18 @@ int main() {
         // ==========================================
         else if (mainChoice == 4) {
             while (true) {
-                clearScreen();
+                string header = (lang == AppLanguage::Ukrainian) ? "--- 🌍 КАПІТАЛ ТА ВАЛЮТИ ---" : "--- 🌍 TOTAL NET WORTH & CURRENCIES ---";
+                vector<string> options;
+
                 if (lang == AppLanguage::Ukrainian) {
-                    cout << "--- 🌍 КАПІТАЛ ТА ВАЛЮТИ ---\n";
-                    cout << "1. Розрахувати мій Загальний капітал\n";
-                    cout << "2. Оновити курси валют\n";
-                    cout << "0. <-- Назад до Головного меню\n> ";
+                    options = { "1. Розрахувати мій Загальний капітал", "2. Оновити курси валют", "0. <-- Назад" };
                 }
                 else {
-                    cout << "--- 🌍 TOTAL NET WORTH & CURRENCIES ---\n";
-                    cout << "1. Calculate my Total Net Worth\n";
-                    cout << "2. Update exchange rates\n";
-                    cout << "0. <-- Back to Main Menu\n> ";
+                    options = { "1. Calculate Total Net Worth", "2. Update exchange rates", "0. <-- Back" };
                 }
 
-                int sub; if (!(cin >> sub)) { cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); continue; }
+                int sel = interactiveMenu(header, options);
+                int sub = (sel == 2) ? 0 : sel + 1;
                 if (sub == 0) break;
 
                 if (sub == 1) { // Капітал
@@ -609,25 +633,23 @@ int main() {
         // ==========================================
         else if (mainChoice == 5) {
             while (true) {
-                clearScreen();
+                string header = (lang == AppLanguage::Ukrainian) ? "--- ⚙️ НАЛАШТУВАННЯ ---" : "--- ⚙️ SETTINGS ---";
+                vector<string> options;
+
                 if (lang == AppLanguage::Ukrainian) {
-                    cout << "--- ⚙️ НАЛАШТУВАННЯ ---\n";
-                    cout << "1. Змінити користувача (Увійти під іншим ім'ям)\n";
-                    cout << "2. Змінити мову інтерфейсу\n";
-                    cout << "0. <-- Назад до Головного меню\n> ";
+                    options = { "1. Змінити користувача", "2. Змінити мову інтерфейсу", "0. <-- Назад" };
                 }
                 else {
-                    cout << "--- ⚙️ SETTINGS ---\n";
-                    cout << "1. Change user (Login as...)\n";
-                    cout << "2. Change interface language\n";
-                    cout << "0. <-- Back to Main Menu\n> ";
+                    options = { "1. Change user", "2. Change interface language", "0. <-- Back" };
                 }
 
-                int sub; if (!(cin >> sub)) { cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); continue; }
+                int sel = interactiveMenu(header, options);
+                int sub = (sel == 2) ? 0 : sel + 1;
+
                 if (sub == 0) break;
 
                 if (sub == 1) { // Змінити користувача
-                    cin.ignore(); clearScreen();
+                    clearScreen();
                     cout << ((lang == AppLanguage::Ukrainian) ? "Введіть ім'я (0-вихід):\n> " : "Enter name (0-exit):\n> ");
                     getline(cin, currentUser);
                     if (currentUser == "0") continue;
@@ -635,16 +657,40 @@ int main() {
                     waitUser(); break; // Виходимо в головне меню після зміни
                 }
                 else if (sub == 2) { // Змінити мову
-                    clearScreen();
-                    cout << "Оберіть мову / Choose language:\n1. Українська\n2. English\n0. Cancel\n> ";
-                    int newLang;
+                    string langHeader = (lang == AppLanguage::Ukrainian)
+                        ? "--- ОБЕРІТЬ МОВУ ---"
+                        : "--- CHOOSE LANGUAGE ---";
 
-                    if (cin >> newLang && (newLang == 1 || newLang == 2)) {
-                        lang = (newLang == 2) ? AppLanguage::English : AppLanguage::Ukrainian;
-                        cout << "-> OK!\n";
+                    vector<string> langOptions;
+                    if (lang == AppLanguage::Ukrainian) {
+                        langOptions = { "1. Українська", "2. English", "0. Скасувати" };
                     }
-                    else if (newLang == 0) continue;
-                    waitUser();
+                    else {
+                        langOptions = { "1. Ukrainian", "2. English", "0. Cancel" };
+                    }
+
+                    // Викликаємо наше інтерактивне меню
+                    int langIdx = interactiveMenu(langHeader, langOptions);
+
+                    // Обробка вибору:
+                    // langIdx 0 -> Українська
+                    // langIdx 1 -> English
+                    // langIdx 2 -> Скасувати (0)
+
+                    if (langIdx == 0) {
+                        lang = AppLanguage::Ukrainian;
+                        cout << (lang == AppLanguage::Ukrainian ? "-> Мову змінено!\n" : "-> Language changed!\n");
+                        waitUser();
+                    }
+                    else if (langIdx == 1) {
+                        lang = AppLanguage::English;
+                        cout << (lang == AppLanguage::Ukrainian ? "-> Мову змінено!\n" : "-> Language changed!\n");
+                        waitUser();
+                    }
+                    else if (langIdx == 2) {
+                        // Користувач вибрав "Скасувати", просто повертаємось назад
+                        continue;
+                    }
                 }
             }
         }
