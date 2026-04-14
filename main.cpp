@@ -59,7 +59,7 @@ string toSortable(const string& date) {
 string getValidEndDate(const string& startDate, AppLanguage lang) {
     string endDate;
     while (true) {
-        cout << ((lang == AppLanguage::Ukrainian) ? "Кінцева дата (0 - відміна): " : "End date (0 - cancel): ");
+        cout << ((lang == AppLanguage::Ukrainian) ? "📅 Кінцева дата (DD.MM.YYYY, Enter = сьогодні, 0 - відміна): " : "📅 End date (DD.MM.YYYY, Enter = today, 0 - cancel): ");
         endDate = getValidDate(lang);
 
         if (endDate == "0") return "0";
@@ -175,20 +175,20 @@ int main() {
                 vector<string> options;
                 if (lang == AppLanguage::Ukrainian) {
                     options = {
-                        "1. Переглянути мої рахунки",
-                        "2. Створити новий рахунок",
-                        "3. Редагувати рахунок",
-                        "4. Видалити рахунок",
-                        "0. <-- Назад до Головного меню"
+                        "📋 Переглянути мої рахунки",
+                        "➕ Створити новий рахунок",
+                        "✏️ Редагувати рахунок",
+                        "🗑️ Видалити рахунок",
+                        "⬅️ Назад до Головного меню"
                     };
                 }
                 else {
                     options = {
-                        "1. View my accounts",
-                        "2. Create new account",
-                        "3. Edit account",
-                        "4. Delete account",
-                        "0. <-- Back to Main Menu"
+                        "📋 View my accounts",
+                        "➕ Create new account",
+                        "✏️ Edit account",
+                        "🗑️ Delete account",
+                        "⬅️ Back to Main Menu"
                     };
                 }
 
@@ -213,9 +213,9 @@ int main() {
                         string typeHeader = (lang == AppLanguage::Ukrainian) ? "Оберіть тип рахунку:" : "Choose account type:";
                         vector<string> typeOptions;
                         if (lang == AppLanguage::Ukrainian) {
-                            typeOptions = { "Готівка", "Кредитка", "Спільний бюджет", "Відміна" };
+                            typeOptions = { "💵 Готівка", "💳 Кредитка", "👥 Спільний бюджет", "❌ Відміна" };
                         } else {
-                            typeOptions = { "Cash", "Credit Card", "Shared Budget", "Cancel" };
+                            typeOptions = { "💵 Cash", "💳 Credit Card", "👥 Shared Budget", "❌ Cancel" };
                         }
                         int typeSel = interactiveMenu(typeHeader, typeOptions);
                         if (typeSel == 3) continue;
@@ -347,18 +347,18 @@ int main() {
                 vector<string> options;
                 if (lang == AppLanguage::Ukrainian) {
                     options = {
-                        "1. Поповнити рахунок (Дохід)",
-                        "2. Внести витрату",
-                        "3. Переказ між рахунками",
-                        "0. <-- Назад до Головного меню"
+                        "💰 Поповнити рахунок (Дохід)",
+                        "💳 Внести витрату",
+                        "🔄 Переказ між рахунками",
+                        "⬅️ Назад до Головного меню"
                     };
                 }
                 else {
                     options = {
-                        "1. Add income",
-                        "2. Add expense",
-                        "3. Transfer funds",
-                        "0. <-- Back to Main Menu"
+                        "💰 Add income",
+                        "💳 Add expense",
+                        "🔄 Transfer funds",
+                        "⬅️ Back to Main Menu"
                     };
                 }
 
@@ -415,7 +415,7 @@ int main() {
                     getline(cin, category);
                     cout << ((lang == AppLanguage::Ukrainian) ? "Опис: " : "Description: ");
                     getline(cin, desc);
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Дата (DD.MM.YYYY): " : "Date (DD.MM.YYYY): ");
+                    cout << ((lang == AppLanguage::Ukrainian) ? "📅 Дата (DD.MM.YYYY, Enter = сьогодні): " : "📅 Date (DD.MM.YYYY, Enter = today): ");
                     string date = getValidDate(lang);
 
                     bool success = (sub == 1) ? manager.makeIncome(accId, amount, category, desc, date, actingUser)
@@ -483,7 +483,8 @@ int main() {
                     tcflush(STDIN_FILENO, TCIFLUSH);
                     cout << ((lang == AppLanguage::Ukrainian) ? "Сума переказу: " : "Transfer amount: ");
                     double amount = getValidDouble();
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Дата (DD.MM.YYYY): " : "Date (DD.MM.YYYY): ");
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    cout << ((lang == AppLanguage::Ukrainian) ? "📅 Дата (DD.MM.YYYY, Enter = сьогодні): " : "📅 Date (DD.MM.YYYY, Enter = today): ");
                     string date = getValidDate(lang);
 
                     if (manager.transferFunds(fromId, toId, amount, date, currentUser)) {
@@ -508,22 +509,22 @@ int main() {
 
                 if (lang == AppLanguage::Ukrainian) {
                     options = {
-                        "1. Виписка по рахунку (Історія транзакцій)",
-                        "2. Звіт: ТОП-3 моїх витрат",
-                        "3. Звіт: Витрати по користувачах",
-                        "4. Загальний фінансовий звіт",
-                        "5. Звіт: ТОП-3 категорій витрат",
-                        "0. <-- Назад до Головного меню"
+                        "📜 Виписка по рахунку (Історія транзакцій)",
+                        "🏆 Звіт: ТОП-3 моїх витрат",
+                        "👥 Звіт: Витрати по користувачах",
+                        "📈 Загальний фінансовий звіт",
+                        "📊 Звіт: ТОП-3 категорій витрат",
+                        "⬅️ Назад до Головного меню"
                     };
                 }
                 else {
                     options = {
-                        "1. Account Statement",
-                        "2. Report: TOP-3 expenses",
-                        "3. Report: Expenses by user",
-                        "4. General Financial Report",
-                        "5. Report: TOP-3 expense categories",
-                        "0. <-- Back to Main Menu"
+                        "📜 Account Statement",
+                        "🏆 Report: TOP-3 expenses",
+                        "👥 Report: Expenses by user",
+                        "📈 General Financial Report",
+                        "📊 Report: TOP-3 expense categories",
+                        "⬅️ Back to Main Menu"
                     };
                 }
 
@@ -576,7 +577,7 @@ int main() {
                 }
                 else if (sub == 2 || sub == 3) {
                     clearScreen();
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Початкова дата (0 - відміна): " : "Start date (0 - cancel): ");
+                    cout << ((lang == AppLanguage::Ukrainian) ? "📅 Початкова дата (DD.MM.YYYY, Enter = сьогодні, 0 - відміна): " : "📅 Start date (DD.MM.YYYY, Enter = today, 0 - cancel): ");
                     string startDate = getValidDate(lang);
                     if (startDate == "0") continue;
                     string endDate = getValidEndDate(startDate, lang);
@@ -602,7 +603,7 @@ int main() {
                 }
                 else if (sub == 4) {
                     clearScreen();
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Початкова дата (0 - відміна): " : "Start date (0 - cancel): ");
+                    cout << ((lang == AppLanguage::Ukrainian) ? "📅 Початкова дата (DD.MM.YYYY, Enter = сьогодні, 0 - відміна): " : "📅 Start date (DD.MM.YYYY, Enter = today, 0 - cancel): ");
                     string startDate = getValidDate(lang);
                     if (startDate == "0") continue;
                     string endDate = getValidEndDate(startDate, lang);
@@ -647,7 +648,7 @@ int main() {
                 else if (sub == 5) {
                     clearScreen();
 
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Початкова дата (0 - відміна): " : "Start date (0 - cancel): ");
+                    cout << ((lang == AppLanguage::Ukrainian) ? "📅 Початкова дата (DD.MM.YYYY, Enter = сьогодні, 0 - відміна): " : "📅 Start date (DD.MM.YYYY, Enter = today, 0 - cancel): ");
                     string startDate = getValidDate(lang);
                     if (startDate == "0") continue;
 
@@ -688,10 +689,10 @@ int main() {
                 vector<string> options;
 
                 if (lang == AppLanguage::Ukrainian) {
-                    options = { "1. Розрахувати мій Загальний капітал", "2. Оновити курси валют", "0. <-- Назад" };
+                    options = { "💎 Розрахувати мій Загальний капітал", "💱 Оновити курси валют", "⬅️ Назад" };
                 }
                 else {
-                    options = { "1. Calculate Total Net Worth", "2. Update exchange rates", "0. <-- Back" };
+                    options = { "💎 Calculate Total Net Worth", "💱 Update exchange rates", "⬅️ Back" };
                 }
 
                 int sel = interactiveMenu(header, options);
@@ -876,14 +877,14 @@ int main() {
 
                         cin.clear();
                         tcflush(STDIN_FILENO, TCIFLUSH);
-                        cout << ((lang == AppLanguage::Ukrainian) ? "Дедлайн (DD.MM.YYYY, 0 - без дедлайну): " : "Deadline (DD.MM.YYYY, 0 - no deadline): ");
+                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        cout << ((lang == AppLanguage::Ukrainian) ? "📅 Дедлайн (DD.MM.YYYY, Enter = сьогодні, 0 - без дедлайну): " : "📅 Deadline (DD.MM.YYYY, Enter = today, 0 - no deadline): ");
                         deadline = getValidDate(lang);
 
                         string newId = savingsManager.generateGoalId();
                         SavingsGoal newGoal(newId, sanitize(name), target, 0.0, currency, currentUser, deadline, isShared);
 
                         if (isShared) {
-                            cin.ignore();
                             cout << ((lang == AppLanguage::Ukrainian) ? "Введіть імена учасників через пробіл: " : "Enter member names separated by space: ");
                             string usersLine; getline(cin, usersLine);
                             stringstream ss(usersLine); string u; vector<string> members;
@@ -1002,7 +1003,8 @@ int main() {
                         double newTarget = getValidDouble();
                         if (newTarget > 0) goal->setTargetAmount(newTarget);
 
-                        cout << ((lang == AppLanguage::Ukrainian) ? "Новий дедлайн (DD.MM.YYYY, 0 - без змін): " : "New deadline (DD.MM.YYYY, 0 - no change): ");
+                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        cout << ((lang == AppLanguage::Ukrainian) ? "📅 Новий дедлайн (DD.MM.YYYY, Enter = сьогодні, 0 - без змін): " : "📅 New deadline (DD.MM.YYYY, Enter = today, 0 - no change): ");
                         string newDeadline = getValidDate(lang);
                         if (newDeadline != "0") goal->setDeadline(newDeadline);
 
@@ -1126,10 +1128,10 @@ int main() {
                 vector<string> options;
 
                 if (lang == AppLanguage::Ukrainian) {
-                    options = { "1. Змінити користувача", "2. Змінити мову інтерфейсу", "0. <-- Назад" };
+                    options = { "👤 Змінити користувача", "🌐 Змінити мову інтерфейсу", "⬅️ Назад" };
                 }
                 else {
-                    options = { "1. Change user", "2. Change interface language", "0. <-- Back" };
+                    options = { "👤 Change user", "🌐 Change interface language", "⬅️ Back" };
                 }
 
                 int sel = interactiveMenu(header, options);
@@ -1152,10 +1154,10 @@ int main() {
 
                     vector<string> langOptions;
                     if (lang == AppLanguage::Ukrainian) {
-                        langOptions = { "1. Українська", "2. English", "0. Відміна" };
+                        langOptions = { "1. 🇺🇦 Українська", "2. 🇬🇧 English", "❌ Відміна" };
                     }
                     else {
-                        langOptions = { "1. Ukrainian", "2. English", "0. Cancel" };
+                        langOptions = { "1. 🇺🇦 Ukrainian", "2. 🇬🇧 English", "❌ Cancel" };
                     }
 
                     // Викликаємо наше інтерактивне меню

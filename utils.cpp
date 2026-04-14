@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <sstream>
 #include <algorithm>
+#include <ctime>
 
 using namespace std;
 
@@ -67,11 +68,23 @@ bool parseAndValidateDate(const std::string& input, std::string& standardizedDat
     return true;
 }
 
+string getCurrentDate() {
+    time_t now = time(nullptr);
+    tm* ltm = localtime(&now);
+    char buf[11];
+    strftime(buf, sizeof(buf), "%Y-%m-%d", ltm);
+    return string(buf);
+}
+
 string getValidDate(AppLanguage lang) {
     string input, stdDate;
     while (true) {
-        cin >> input;
-        if (input == "0")return "0";
+        getline(cin, input);
+        // Trim whitespace
+        input.erase(0, input.find_first_not_of(" \t\r\n"));
+        if (!input.empty()) input.erase(input.find_last_not_of(" \t\r\n") + 1);
+        if (input.empty()) return getCurrentDate();
+        if (input == "0") return "0";
         if (parseAndValidateDate(input, stdDate)) return stdDate;
         if (lang == AppLanguage::Ukrainian) cout << "Некоректна дата! Використовуйте DD.MM.YYYY: ";
         else cout << "Invalid date! Use DD.MM.YYYY: ";
