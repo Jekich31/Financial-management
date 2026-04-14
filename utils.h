@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "globals.h"
+#include "types.h"
 
 void clearScreen();
 void waitUser();

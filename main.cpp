@@ -6,11 +6,11 @@
 #include <vector>
 #include <termios.h>
 #include <unistd.h>
-#include "globals.h"
+#include "types.h"
 #include "utils.h"
 #include "models.h"
 #include "core.h"
-#include "test.h"
+#include "menu.h"
 using namespace std;
 
 // Helper to format double without trailing zeros
@@ -59,7 +59,7 @@ string toSortable(const string& date) {
 string getValidEndDate(const string& startDate, AppLanguage lang) {
     string endDate;
     while (true) {
-        cout << ((lang == AppLanguage::Ukrainian) ? "Кінцева дата (0-відміна): " : "End date (0-cancel): ");
+        cout << ((lang == AppLanguage::Ukrainian) ? "Кінцева дата (0 - відміна): " : "End date (0 - cancel): ");
         endDate = getValidDate(lang);
 
         if (endDate == "0") return "0";
@@ -79,8 +79,11 @@ string getValidEndDate(const string& startDate, AppLanguage lang) {
 
 
 int main() {
-    system("chcp 65001 > nul");
-    setlocale(LC_ALL, "uk_UA.UTF-8");
+    if (!setlocale(LC_ALL, "uk_UA.UTF-8")) {
+        if (!setlocale(LC_ALL, "en_US.UTF-8")) {
+            setlocale(LC_ALL, "");
+        }
+    }
     AccountManager manager;
     SavingsManager savingsManager;
     string dbFilename = "finance_data.txt";
@@ -210,9 +213,9 @@ int main() {
                         string typeHeader = (lang == AppLanguage::Ukrainian) ? "Оберіть тип рахунку:" : "Choose account type:";
                         vector<string> typeOptions;
                         if (lang == AppLanguage::Ukrainian) {
-                            typeOptions = { "Скарбничка", "Кредитка", "Спільний бюджет", "Відміна" };
+                            typeOptions = { "Готівка", "Кредитка", "Спільний бюджет", "Відміна" };
                         } else {
-                            typeOptions = { "Debit wallet", "Credit Card", "Shared Budget", "Cancel" };
+                            typeOptions = { "Cash", "Credit Card", "Shared Budget", "Cancel" };
                         }
                         int typeSel = interactiveMenu(typeHeader, typeOptions);
                         if (typeSel == 3) continue;
@@ -573,7 +576,7 @@ int main() {
                 }
                 else if (sub == 2 || sub == 3) {
                     clearScreen();
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Початкова дата (0-відміна): " : "Start date (0-cancel): ");
+                    cout << ((lang == AppLanguage::Ukrainian) ? "Початкова дата (0 - відміна): " : "Start date (0 - cancel): ");
                     string startDate = getValidDate(lang);
                     if (startDate == "0") continue;
                     string endDate = getValidEndDate(startDate, lang);
@@ -599,7 +602,7 @@ int main() {
                 }
                 else if (sub == 4) {
                     clearScreen();
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Початкова дата (0-відміна): " : "Start date (0-cancel): ");
+                    cout << ((lang == AppLanguage::Ukrainian) ? "Початкова дата (0 - відміна): " : "Start date (0 - cancel): ");
                     string startDate = getValidDate(lang);
                     if (startDate == "0") continue;
                     string endDate = getValidEndDate(startDate, lang);
@@ -644,7 +647,7 @@ int main() {
                 else if (sub == 5) {
                     clearScreen();
 
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Початкова дата (0-відміна): " : "Start date (0-cancel): ");
+                    cout << ((lang == AppLanguage::Ukrainian) ? "Початкова дата (0 - відміна): " : "Start date (0 - cancel): ");
                     string startDate = getValidDate(lang);
                     if (startDate == "0") continue;
 
@@ -873,7 +876,7 @@ int main() {
 
                         cin.clear();
                         tcflush(STDIN_FILENO, TCIFLUSH);
-                        cout << ((lang == AppLanguage::Ukrainian) ? "Дедлайн (DD.MM.YYYY, 0-без дедлайну): " : "Deadline (DD.MM.YYYY, 0-no deadline): ");
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Дедлайн (DD.MM.YYYY, 0 - без дедлайну): " : "Deadline (DD.MM.YYYY, 0 - no deadline): ");
                         deadline = getValidDate(lang);
 
                         string newId = savingsManager.generateGoalId();
@@ -999,7 +1002,7 @@ int main() {
                         double newTarget = getValidDouble();
                         if (newTarget > 0) goal->setTargetAmount(newTarget);
 
-                        cout << ((lang == AppLanguage::Ukrainian) ? "Новий дедлайн (DD.MM.YYYY, 0-без змін): " : "New deadline (DD.MM.YYYY, 0-no change): ");
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Новий дедлайн (DD.MM.YYYY, 0 - без змін): " : "New deadline (DD.MM.YYYY, 0 - no change): ");
                         string newDeadline = getValidDate(lang);
                         if (newDeadline != "0") goal->setDeadline(newDeadline);
 
@@ -1136,7 +1139,7 @@ int main() {
 
                 if (sub == 1) { // Змінити користувача
                     clearScreen();
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Введіть ім'я (0-вихід):\n> " : "Enter name (0-exit):\n> ");
+                    cout << ((lang == AppLanguage::Ukrainian) ? "Введіть ім'я (0 - вихід):\n> " : "Enter name (0 - exit):\n> ");
                     getline(cin, currentUser);
                     if (currentUser == "0") continue;
                     cout << "-> OK: " << currentUser << "!\n";
@@ -1149,7 +1152,7 @@ int main() {
 
                     vector<string> langOptions;
                     if (lang == AppLanguage::Ukrainian) {
-                        langOptions = { "1. Українська", "2. English", "0. Скасувати" };
+                        langOptions = { "1. Українська", "2. English", "0. Відміна" };
                     }
                     else {
                         langOptions = { "1. Ukrainian", "2. English", "0. Cancel" };
@@ -1161,7 +1164,7 @@ int main() {
                     // Обробка вибору:
                     // langIdx 0 -> Українська
                     // langIdx 1 -> English
-                    // langIdx 2 -> Скасувати (0)
+                    // langIdx 2 -> Відміна (0)
 
                     if (langIdx == 0) {
                         lang = AppLanguage::Ukrainian;
@@ -1174,7 +1177,7 @@ int main() {
                         waitUser();
                     }
                     else if (langIdx == 2) {
-                        // Користувач вибрав "Скасувати", просто повертаємось назад
+                        // Користувач вибрав "Відміна", просто повертаємось назад
                         continue;
                     }
                 }

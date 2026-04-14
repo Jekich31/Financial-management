@@ -1,7 +1,10 @@
-#include "test.h"
+#include "menu.h"
 #include "utils.h"
+#include <iostream>
 #include <termios.h>
 #include <unistd.h>
+
+using namespace std;
 
 int interactiveMenu(const string& header, const vector<string>& options) {
     int selected = 0;

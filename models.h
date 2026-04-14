@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-#include "globals.h"
+#include "types.h"
 
 class Account {
 protected:

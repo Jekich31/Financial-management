@@ -1,10 +1,11 @@
+# Compiled binary
+finance_app
+
+# Data files (generated at runtime)
 finance_data.txt
-myprogram
-nul
-/x64/Debug
-/ProjectTESTGIT/x64/Debug
-/.vs
-*.user
-*.filters
-*.vcxproj
 savings_data.txt
+
+# Build artifacts
+*.o
+*.exe
+nul
