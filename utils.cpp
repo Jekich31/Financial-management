@@ -80,3 +80,14 @@ string sanitize(string s) {
     replace(s.begin(), s.end(), '|', ' ');
     return s;
 }
+
+string progressBar(double current, double target, int width) {
+    double ratio = (target > 0) ? min(current / target, 1.0) : 0.0;
+    int filled = (int)(ratio * width);
+    string bar = "[";
+    for (int i = 0; i < width; i++) {
+        bar += (i < filled) ? "\u2588" : "\u2591";
+    }
+    bar += "] " + to_string((int)(ratio * 100)) + "%";
+    return bar;
+}

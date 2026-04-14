@@ -320,3 +320,86 @@ std::vector<std::pair<std::string, double>> ReportGenerator::getTop3Categories(
 
     return sortedCategories;
 }
+
+// --- SavingsManager ---
+
+string SavingsManager::generateGoalId() { return "G" + to_string(goalCounter++); }
+void SavingsManager::setCounter(int count) { goalCounter = count; }
+void SavingsManager::addGoal(const SavingsGoal& goal) { goals.push_back(goal); }
+vector<SavingsGoal>& SavingsManager::getGoals() { return goals; }
+const vector<SavingsGoal>& SavingsManager::getGoals() const { return goals; }
+
+SavingsGoal* SavingsManager::getGoalById(const string& id) {
+    for (auto& g : goals) {
+        if (g.getId() == id) return &g;
+    }
+    return nullptr;
+}
+
+bool SavingsManager::deleteGoal(const string& id, const string& userName) {
+    auto it = find_if(goals.begin(), goals.end(), [&](const SavingsGoal& g) { return g.getId() == id; });
+    if (it == goals.end()) return false;
+    if (it->getOwner() != userName) return false;
+    goals.erase(it);
+    return true;
+}
+
+// --- StorageManager (Savings) ---
+
+void StorageManager::saveSavingsToFile(const SavingsManager& savings, const string& filename) {
+    ofstream out(filename);
+    if (!out.is_open()) return;
+
+    for (const auto& goal : savings.getGoals()) {
+        out << "GOAL|" << goal.getId() << "|" << goal.getName() << "|"
+            << goal.getTargetAmount() << "|" << goal.getCurrentAmount() << "|"
+            << goal.getCurrency() << "|" << goal.getOwner() << "|"
+            << goal.getDeadline() << "|" << (goal.isShared() ? "1" : "0");
+
+        if (goal.isShared()) {
+            out << "|";
+            auto members = goal.getMembers();
+            for (size_t i = 0; i < members.size(); ++i) {
+                out << members[i];
+                if (i < members.size() - 1) out << ",";
+            }
+        }
+        out << "\n";
+    }
+}
+
+void StorageManager::loadSavingsFromFile(SavingsManager& savings, const string& filename) {
+    ifstream in(filename);
+    if (!in.is_open()) return;
+
+    string line;
+    int maxId = 0;
+
+    while (getline(in, line)) {
+        if (line.empty()) continue;
+        auto parts = split(line, '|');
+        if (parts[0] != "GOAL" || parts.size() < 9) continue;
+
+        string id = parts[1];
+        string name = parts[2];
+        double target = stod(parts[3]);
+        double current = stod(parts[4]);
+        string currency = parts[5];
+        string owner = parts[6];
+        string deadline = parts[7];
+        bool isShared = (parts[8] == "1");
+
+        string numStr = id.substr(1);
+        maxId = max(maxId, stoi(numStr));
+
+        SavingsGoal goal(id, name, target, current, currency, owner, deadline, isShared);
+
+        if (isShared && parts.size() > 9) {
+            goal.setMembers(split(parts[9], ','));
+        }
+
+        savings.addGoal(goal);
+    }
+
+    savings.setCounter(maxId + 1);
+}

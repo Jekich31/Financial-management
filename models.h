@@ -95,3 +95,59 @@ public:
     }
 
 };
+
+class SavingsGoal {
+private:
+    std::string id;
+    std::string name;
+    double targetAmount;
+    double currentAmount;
+    std::string currency;
+    std::string owner;
+    std::vector<std::string> members;
+    std::string deadline;
+    bool shared;
+public:
+    SavingsGoal(std::string id, std::string name, double target, double current,
+                std::string currency, std::string owner, std::string deadline, bool isShared)
+        : id(id), name(name), targetAmount(target), currentAmount(current),
+          currency(currency), owner(owner), deadline(deadline), shared(isShared) {}
+
+    std::string getId() const { return id; }
+    std::string getName() const { return name; }
+    double getTargetAmount() const { return targetAmount; }
+    double getCurrentAmount() const { return currentAmount; }
+    std::string getCurrency() const { return currency; }
+    std::string getOwner() const { return owner; }
+    std::string getDeadline() const { return deadline; }
+    bool isShared() const { return shared; }
+    std::vector<std::string> getMembers() const { return members; }
+
+    void setName(const std::string& n) { name = n; }
+    void setTargetAmount(double t) { targetAmount = t; }
+    void setDeadline(const std::string& d) { deadline = d; }
+    void setMembers(const std::vector<std::string>& m) { members = m; }
+
+    void addFunds(double amount) { currentAmount += amount; }
+    bool withdrawFunds(double amount) {
+        if (currentAmount >= amount) { currentAmount -= amount; return true; }
+        return false;
+    }
+
+    double getProgress() const {
+        return (targetAmount > 0) ? (currentAmount / targetAmount * 100.0) : 0.0;
+    }
+
+    void addMember(const std::string& user) {
+        if (std::find(members.begin(), members.end(), user) == members.end())
+            members.push_back(user);
+    }
+    void removeMember(const std::string& user) {
+        members.erase(std::remove(members.begin(), members.end(), user), members.end());
+    }
+
+    bool hasAccess(const std::string& userName) const {
+        if (!shared) return owner == userName;
+        return std::find(members.begin(), members.end(), userName) != members.end();
+    }
+};

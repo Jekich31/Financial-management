@@ -1,8 +1,19 @@
 #include "test.h"
 #include "utils.h"
+#include <termios.h>
+#include <unistd.h>
+
 int interactiveMenu(const string& header, const vector<string>& options) {
     int selected = 0;
     int numOptions = options.size();
+
+    struct termios oldt, newt;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    newt.c_cc[VMIN] = 1;
+    newt.c_cc[VTIME] = 0;
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
     while (true) {
         clearScreen();
@@ -17,23 +28,28 @@ int interactiveMenu(const string& header, const vector<string>& options) {
                 cout << "   " << options[i] << "\n";
             }
         }
+        cout.flush();
 
+        unsigned char ch;
+        read(STDIN_FILENO, &ch, 1);
 
-        int key = std::cin.get();
-
-        if (key == 27) {
-            int next1 = std::cin.get();
-            if (next1 == '[') {
-                int next2 = std::cin.get();
-                if (next2 == 'A') {
-                    selected = (selected - 1 + numOptions) % numOptions;
-                }
-                else if (next2 == 'B') {
-                    selected = (selected + 1) % numOptions;
+        if (ch == 27) {
+            unsigned char seq[2];
+            if (read(STDIN_FILENO, &seq[0], 1) == 1 && seq[0] == '[') {
+                if (read(STDIN_FILENO, &seq[1], 1) == 1) {
+                    if (seq[1] == 'A') {
+                        selected = (selected - 1 + numOptions) % numOptions;
+                    }
+                    else if (seq[1] == 'B') {
+                        selected = (selected + 1) % numOptions;
+                    }
                 }
             }
         }
-        else if (key == '\n' || key == '\r' || key == 13) {
+        else if (ch == '\n' || ch == '\r') {
+            tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+            tcflush(STDIN_FILENO, TCIFLUSH);
+            cin.clear();
             return selected;
         }
     }

@@ -51,11 +51,28 @@ public:
     std::vector<Transaction> getTransactionsForUser(const std::string& userName) const;
 };
 
+// Менеджер заощаджень
+class SavingsManager {
+private:
+    std::vector<SavingsGoal> goals;
+    int goalCounter = 1;
+public:
+    std::string generateGoalId();
+    void setCounter(int count);
+    void addGoal(const SavingsGoal& goal);
+    std::vector<SavingsGoal>& getGoals();
+    const std::vector<SavingsGoal>& getGoals() const;
+    SavingsGoal* getGoalById(const std::string& id);
+    bool deleteGoal(const std::string& id, const std::string& userName);
+};
+
 // Робота з файлами
 class StorageManager {
 public:
     static void saveToFile(const AccountManager& manager, const std::string& filename);
     static void loadFromFile(AccountManager& manager, const std::string& filename);
+    static void saveSavingsToFile(const SavingsManager& savings, const std::string& filename);
+    static void loadSavingsFromFile(SavingsManager& savings, const std::string& filename);
 };
 
 // Звіти

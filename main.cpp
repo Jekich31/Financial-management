@@ -4,6 +4,8 @@
 #include <sstream>
 #include <limits>
 #include <vector>
+#include <termios.h>
+#include <unistd.h>
 #include "globals.h"
 #include "utils.h"
 #include "models.h"
@@ -73,9 +75,12 @@ int main() {
     system("chcp 65001 > nul");
     setlocale(LC_ALL, "uk_UA.UTF-8");
     AccountManager manager;
+    SavingsManager savingsManager;
     string dbFilename = "finance_data.txt";
+    string savingsFilename = "savings_data.txt";
 
     StorageManager::loadFromFile(manager, dbFilename);
+    StorageManager::loadSavingsFromFile(savingsManager, savingsFilename);
 
     clearScreen();
     cout << "Оберіть мову / Choose language:\n1. Українська\n2. English\n> ";
@@ -84,6 +89,9 @@ int main() {
     AppLanguage lang = (langIdx == 1) ? AppLanguage::English : AppLanguage::Ukrainian;
 
     string currentUser;
+    // Clear input buffer after interactive menu
+    cin.clear();
+    tcflush(STDIN_FILENO, TCIFLUSH);
     while (true) {
         clearScreen();
         cout << ((lang == AppLanguage::Ukrainian) ? "Увійдіть у систему (Введіть ваше ім'я):\n> " : "Log in (Enter your name):\n> ");
@@ -112,6 +120,7 @@ int main() {
                 "💸 Транзакції (Доходи, Витрати, Перекази)",
                 "📊 Історія та Звіти (Виписка, ТОП-3 витрат...)",
                 "🌍 Капітал та Курси валют",
+                "💰 Заощадження (Особисті, Спільні)",
                 "⚙️ Налаштування (Змінити мову / користувача)",
                 "❌ Вимкнути програму"
             };
@@ -122,6 +131,7 @@ int main() {
                 "💸 Transactions (Income, Expenses, Transfers)",
                 "📊 History & Reports (Statement, TOP-3...)",
                 "🌍 Total Net Worth & Exchange Rates",
+                "💰 Savings (Personal, Shared)",
                 "⚙️ Settings (Change language / user)",
                 "❌ Exit program"
             };
@@ -129,7 +139,7 @@ int main() {
         int selectedIndex = interactiveMenu(header, menuOptions);
 
         int mainChoice;
-        if (selectedIndex == 5) {
+        if (selectedIndex == 6) {
             mainChoice = 0;
         }
         else {
@@ -138,6 +148,7 @@ int main() {
 
         if (mainChoice == 0) {
             StorageManager::saveToFile(manager, dbFilename);
+            StorageManager::saveSavingsToFile(savingsManager, savingsFilename);
             cout << ((lang == AppLanguage::Ukrainian) ? "До побачення!\n" : "Goodbye!\n");
             break; // Вихід з програми
         }
@@ -638,9 +649,359 @@ int main() {
         }
 
         // ==========================================
-        // ПІДМЕНЮ 5: НАЛАШТУВАННЯ
+        // ПІДМЕНЮ 5: ЗАОЩАДЖЕННЯ
         // ==========================================
         else if (mainChoice == 5) {
+            while (true) {
+                string header = (lang == AppLanguage::Ukrainian)
+                    ? "--- 💰 ЗАОЩАДЖЕННЯ ---"
+                    : "--- 💰 SAVINGS ---";
+
+                vector<string> options;
+                if (lang == AppLanguage::Ukrainian) {
+                    options = {
+                        "🏦 Особисті заощадження",
+                        "🤝 Спільні заощадження",
+                        "⬅️ Назад до Головного меню"
+                    };
+                } else {
+                    options = {
+                        "🏦 Personal Savings",
+                        "🤝 Shared Savings",
+                        "⬅️ Back to Main Menu"
+                    };
+                }
+
+                int sel = interactiveMenu(header, options);
+                if (sel == 2) break;
+
+                bool isShared = (sel == 1);
+
+                while (true) {
+                    string subHeader = (lang == AppLanguage::Ukrainian)
+                        ? (isShared ? "--- 🤝 СПІЛЬНІ ЗАОЩАДЖЕННЯ ---" : "--- 🏦 ОСОБИСТІ ЗАОЩАДЖЕННЯ ---")
+                        : (isShared ? "--- 🤝 SHARED SAVINGS ---" : "--- 🏦 PERSONAL SAVINGS ---");
+
+                    vector<string> subOptions;
+                    if (lang == AppLanguage::Ukrainian) {
+                        subOptions = {
+                            "📋 Переглянути цілі",
+                            "➕ Створити нову ціль",
+                            "💵 Поповнити заощадження",
+                            "💸 Зняти кошти",
+                            "✏️ Редагувати ціль"
+                        };
+                        if (isShared) subOptions.push_back("👥 Керувати учасниками");
+                        subOptions.push_back("🗑️ Видалити ціль");
+                        subOptions.push_back("⬅️ Назад");
+                    } else {
+                        subOptions = {
+                            "📋 View goals",
+                            "➕ Create new goal",
+                            "💵 Add funds",
+                            "💸 Withdraw funds",
+                            "✏️ Edit goal"
+                        };
+                        if (isShared) subOptions.push_back("👥 Manage members");
+                        subOptions.push_back("🗑️ Delete goal");
+                        subOptions.push_back("⬅️ Back");
+                    }
+
+                    int subSel = interactiveMenu(subHeader, subOptions);
+                    int backIdx = (int)subOptions.size() - 1;
+                    int deleteIdx = backIdx - 1;
+                    int membersIdx = isShared ? (deleteIdx - 1) : -1;
+
+                    if (subSel == backIdx) break;
+
+                    // === VIEW ===
+                    if (subSel == 0) {
+                        clearScreen();
+                        cout << ((lang == AppLanguage::Ukrainian)
+                            ? (isShared ? "--- 🤝 СПІЛЬНІ ЦІЛІ ---\n" : "--- 🏦 ОСОБИСТІ ЦІЛІ ---\n")
+                            : (isShared ? "--- 🤝 SHARED GOALS ---\n" : "--- 🏦 PERSONAL GOALS ---\n"));
+                        cout << "-----------------------------------------\n";
+                        bool found = false;
+                        for (auto& goal : savingsManager.getGoals()) {
+                            if (goal.isShared() != isShared) continue;
+                            if (!goal.hasAccess(currentUser)) continue;
+                            found = true;
+                            cout << " [" << goal.getId() << "] " << goal.getName()
+                                << " | " << goal.getCurrentAmount() << "/" << goal.getTargetAmount()
+                                << " " << goal.getCurrency();
+                            if (isShared) {
+                                auto members = goal.getMembers();
+                                cout << " | 👥 ";
+                                for (size_t i = 0; i < members.size(); ++i) {
+                                    cout << members[i];
+                                    if (i < members.size() - 1) cout << ", ";
+                                }
+                            }
+                            cout << "\n   " << progressBar(goal.getCurrentAmount(), goal.getTargetAmount());
+                            if (!goal.getDeadline().empty() && goal.getDeadline() != "0") {
+                                cout << " | 📅 " << goal.getDeadline();
+                            }
+                            cout << "\n";
+                        }
+                        if (!found) {
+                            cout << ((lang == AppLanguage::Ukrainian) ? "Цілей не знайдено.\n" : "No goals found.\n");
+                        }
+                        cout << "-----------------------------------------\n";
+                        waitUser();
+                    }
+
+                    // === CREATE ===
+                    else if (subSel == 1) {
+                        clearScreen();
+                        string name, currency, deadline;
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Назва цілі: " : "Goal name: ");
+                        cin.ignore();
+                        getline(cin, name);
+                        if (name.empty()) { cout << ((lang == AppLanguage::Ukrainian) ? "Помилка!\n" : "Error!\n"); waitUser(); continue; }
+
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Цільова сума: " : "Target amount: ");
+                        double target = getValidDouble();
+
+                        int currChoice;
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Валюта (1-UAH, 2-USD, 3-EUR): " : "Currency (1-UAH, 2-USD, 3-EUR): ");
+                        while (!(cin >> currChoice) || currChoice < 1 || currChoice > 3) {
+                            cout << ((lang == AppLanguage::Ukrainian) ? "Помилка! 1, 2 або 3: " : "Error! 1, 2 or 3: ");
+                            cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        }
+                        if (currChoice == 1) currency = "UAH";
+                        else if (currChoice == 2) currency = "USD";
+                        else currency = "EUR";
+
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Дедлайн (DD.MM.YYYY, 0-без дедлайну): " : "Deadline (DD.MM.YYYY, 0-no deadline): ");
+                        deadline = getValidDate(lang);
+
+                        string newId = savingsManager.generateGoalId();
+                        SavingsGoal newGoal(newId, sanitize(name), target, 0.0, currency, currentUser, deadline, isShared);
+
+                        if (isShared) {
+                            cin.ignore();
+                            cout << ((lang == AppLanguage::Ukrainian) ? "Введіть імена учасників через пробіл: " : "Enter member names separated by space: ");
+                            string usersLine; getline(cin, usersLine);
+                            stringstream ss(usersLine); string u; vector<string> members;
+                            while (ss >> u) members.push_back(sanitize(u));
+                            if (find(members.begin(), members.end(), currentUser) == members.end())
+                                members.push_back(sanitize(currentUser));
+                            newGoal.setMembers(members);
+                        }
+
+                        savingsManager.addGoal(newGoal);
+                        StorageManager::saveSavingsToFile(savingsManager, savingsFilename);
+                        cout << ((lang == AppLanguage::Ukrainian) ? "✅ Ціль створено! ID: " : "✅ Goal created! ID: ") << newId << "\n";
+                        waitUser();
+                    }
+
+                    // === ADD FUNDS ===
+                    else if (subSel == 2) {
+                        clearScreen();
+                        cout << ((lang == AppLanguage::Ukrainian) ? "--- 💵 ПОПОВНЕННЯ ---\n" : "--- 💵 ADD FUNDS ---\n");
+                        bool found = false;
+                        for (auto& goal : savingsManager.getGoals()) {
+                            if (goal.isShared() != isShared || !goal.hasAccess(currentUser)) continue;
+                            found = true;
+                            cout << " [" << goal.getId() << "] " << goal.getName()
+                                << " (" << goal.getCurrentAmount() << "/" << goal.getTargetAmount() << " " << goal.getCurrency() << ")\n";
+                        }
+                        if (!found) {
+                            cout << ((lang == AppLanguage::Ukrainian) ? "Цілей не знайдено.\n" : "No goals found.\n");
+                            waitUser(); continue;
+                        }
+                        cout << ((lang == AppLanguage::Ukrainian) ? "ID цілі (0-відміна): " : "Goal ID (0-cancel): ");
+                        string gId; cin >> gId;
+                        if (gId == "0") continue;
+
+                        auto* goal = savingsManager.getGoalById(gId);
+                        if (!goal || goal->isShared() != isShared || !goal->hasAccess(currentUser)) {
+                            cout << ((lang == AppLanguage::Ukrainian) ? "Помилка доступу!\n" : "Access denied!\n");
+                            waitUser(); continue;
+                        }
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Сума поповнення: " : "Amount to add: ");
+                        double amount = getValidDouble();
+                        goal->addFunds(amount);
+                        StorageManager::saveSavingsToFile(savingsManager, savingsFilename);
+                        cout << ((lang == AppLanguage::Ukrainian) ? "✅ Поповнено! " : "✅ Added! ")
+                            << progressBar(goal->getCurrentAmount(), goal->getTargetAmount()) << "\n";
+                        waitUser();
+                    }
+
+                    // === WITHDRAW ===
+                    else if (subSel == 3) {
+                        clearScreen();
+                        cout << ((lang == AppLanguage::Ukrainian) ? "--- 💸 ЗНЯТТЯ КОШТІВ ---\n" : "--- 💸 WITHDRAW ---\n");
+                        bool found = false;
+                        for (auto& goal : savingsManager.getGoals()) {
+                            if (goal.isShared() != isShared || !goal.hasAccess(currentUser)) continue;
+                            found = true;
+                            cout << " [" << goal.getId() << "] " << goal.getName()
+                                << " (" << goal.getCurrentAmount() << " " << goal.getCurrency() << ")\n";
+                        }
+                        if (!found) {
+                            cout << ((lang == AppLanguage::Ukrainian) ? "Цілей не знайдено.\n" : "No goals found.\n");
+                            waitUser(); continue;
+                        }
+                        cout << ((lang == AppLanguage::Ukrainian) ? "ID цілі (0-відміна): " : "Goal ID (0-cancel): ");
+                        string gId; cin >> gId;
+                        if (gId == "0") continue;
+
+                        auto* goal = savingsManager.getGoalById(gId);
+                        if (!goal || goal->isShared() != isShared || !goal->hasAccess(currentUser)) {
+                            cout << ((lang == AppLanguage::Ukrainian) ? "Помилка доступу!\n" : "Access denied!\n");
+                            waitUser(); continue;
+                        }
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Сума зняття (макс " : "Withdraw amount (max ")
+                            << goal->getCurrentAmount() << "): ";
+                        double amount = getValidDouble();
+                        if (goal->withdrawFunds(amount)) {
+                            StorageManager::saveSavingsToFile(savingsManager, savingsFilename);
+                            cout << ((lang == AppLanguage::Ukrainian) ? "✅ Знято!\n" : "✅ Withdrawn!\n");
+                        } else {
+                            cout << ((lang == AppLanguage::Ukrainian) ? "❌ Недостатньо коштів!\n" : "❌ Insufficient funds!\n");
+                        }
+                        waitUser();
+                    }
+
+                    // === EDIT ===
+                    else if (subSel == 4) {
+                        clearScreen();
+                        cout << ((lang == AppLanguage::Ukrainian) ? "--- ✏️ РЕДАГУВАННЯ ---\n" : "--- ✏️ EDIT GOAL ---\n");
+                        bool found = false;
+                        for (auto& goal : savingsManager.getGoals()) {
+                            if (goal.isShared() != isShared || !goal.hasAccess(currentUser)) continue;
+                            found = true;
+                            cout << " [" << goal.getId() << "] " << goal.getName()
+                                << " | 🎯 " << goal.getTargetAmount() << " " << goal.getCurrency()
+                                << " | 📅 " << goal.getDeadline() << "\n";
+                        }
+                        if (!found) {
+                            cout << ((lang == AppLanguage::Ukrainian) ? "Цілей не знайдено.\n" : "No goals found.\n");
+                            waitUser(); continue;
+                        }
+                        cout << ((lang == AppLanguage::Ukrainian) ? "ID цілі (0-відміна): " : "Goal ID (0-cancel): ");
+                        string gId; cin >> gId;
+                        if (gId == "0") continue;
+
+                        auto* goal = savingsManager.getGoalById(gId);
+                        if (!goal || goal->getOwner() != currentUser) {
+                            cout << ((lang == AppLanguage::Ukrainian) ? "Помилка доступу!\n" : "Access denied!\n");
+                            waitUser(); continue;
+                        }
+                        cin.ignore();
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Нова назва (Enter - без змін): " : "New name (Enter - no change): ");
+                        string newName; getline(cin, newName);
+                        if (!newName.empty()) goal->setName(sanitize(newName));
+
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Нова цільова сума (0 - без змін): " : "New target amount (0 - no change): ");
+                        double newTarget = getValidDouble();
+                        if (newTarget > 0) goal->setTargetAmount(newTarget);
+
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Новий дедлайн (DD.MM.YYYY, 0-без змін): " : "New deadline (DD.MM.YYYY, 0-no change): ");
+                        string newDeadline = getValidDate(lang);
+                        if (newDeadline != "0") goal->setDeadline(newDeadline);
+
+                        StorageManager::saveSavingsToFile(savingsManager, savingsFilename);
+                        cout << ((lang == AppLanguage::Ukrainian) ? "✅ Ціль оновлено!\n" : "✅ Goal updated!\n");
+                        waitUser();
+                    }
+
+                    // === MANAGE MEMBERS (shared only) ===
+                    else if (isShared && subSel == membersIdx) {
+                        clearScreen();
+                        cout << ((lang == AppLanguage::Ukrainian) ? "--- 👥 КЕРУВАННЯ УЧАСНИКАМИ ---\n" : "--- 👥 MANAGE MEMBERS ---\n");
+                        bool found = false;
+                        for (auto& goal : savingsManager.getGoals()) {
+                            if (!goal.isShared() || !goal.hasAccess(currentUser)) continue;
+                            found = true;
+                            cout << " [" << goal.getId() << "] " << goal.getName() << " | 👥 ";
+                            auto members = goal.getMembers();
+                            for (size_t i = 0; i < members.size(); ++i) {
+                                cout << members[i];
+                                if (i < members.size() - 1) cout << ", ";
+                            }
+                            cout << "\n";
+                        }
+                        if (!found) {
+                            cout << ((lang == AppLanguage::Ukrainian) ? "Цілей не знайдено.\n" : "No goals found.\n");
+                            waitUser(); continue;
+                        }
+                        cout << ((lang == AppLanguage::Ukrainian) ? "ID цілі (0-відміна): " : "Goal ID (0-cancel): ");
+                        string gId; cin >> gId;
+                        if (gId == "0") continue;
+
+                        auto* goal = savingsManager.getGoalById(gId);
+                        if (!goal || goal->getOwner() != currentUser) {
+                            cout << ((lang == AppLanguage::Ukrainian) ? "Помилка доступу! Тільки власник може керувати.\n" : "Access denied! Only owner can manage.\n");
+                            waitUser(); continue;
+                        }
+
+                        cout << ((lang == AppLanguage::Ukrainian) ? "1-Додати, 2-Видалити учасника: " : "1-Add, 2-Remove member: ");
+                        int action;
+                        while (!(cin >> action) || (action != 1 && action != 2)) {
+                            cout << "1 or 2: "; cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        }
+                        cin.ignore();
+                        if (action == 1) {
+                            cout << ((lang == AppLanguage::Ukrainian) ? "Ім'я нового учасника: " : "New member name: ");
+                            string name; getline(cin, name);
+                            goal->addMember(sanitize(name));
+                            cout << ((lang == AppLanguage::Ukrainian) ? "✅ Учасника додано!\n" : "✅ Member added!\n");
+                        } else {
+                            auto members = goal->getMembers();
+                            cout << ((lang == AppLanguage::Ukrainian) ? "Поточні учасники:\n" : "Current members:\n");
+                            for (size_t i = 0; i < members.size(); ++i) {
+                                cout << i + 1 << ". " << members[i] << "\n";
+                            }
+                            cout << ((lang == AppLanguage::Ukrainian) ? "Ім'я для видалення: " : "Name to remove: ");
+                            string name; getline(cin, name);
+                            if (name == goal->getOwner()) {
+                                cout << ((lang == AppLanguage::Ukrainian) ? "❌ Не можна видалити власника!\n" : "❌ Cannot remove the owner!\n");
+                            } else {
+                                goal->removeMember(name);
+                                cout << ((lang == AppLanguage::Ukrainian) ? "✅ Учасника видалено!\n" : "✅ Member removed!\n");
+                            }
+                        }
+                        StorageManager::saveSavingsToFile(savingsManager, savingsFilename);
+                        waitUser();
+                    }
+
+                    // === DELETE ===
+                    else if (subSel == deleteIdx) {
+                        clearScreen();
+                        cout << ((lang == AppLanguage::Ukrainian) ? "--- 🗑️ ВИДАЛЕННЯ ---\n" : "--- 🗑️ DELETE GOAL ---\n");
+                        bool found = false;
+                        for (auto& goal : savingsManager.getGoals()) {
+                            if (goal.isShared() != isShared || goal.getOwner() != currentUser) continue;
+                            found = true;
+                            cout << " [" << goal.getId() << "] " << goal.getName()
+                                << " (" << goal.getCurrentAmount() << "/" << goal.getTargetAmount() << " " << goal.getCurrency() << ")\n";
+                        }
+                        if (!found) {
+                            cout << ((lang == AppLanguage::Ukrainian) ? "Цілей не знайдено.\n" : "No goals found.\n");
+                            waitUser(); continue;
+                        }
+                        cout << ((lang == AppLanguage::Ukrainian) ? "ID цілі для видалення (0-відміна): " : "Goal ID to delete (0-cancel): ");
+                        string gId; cin >> gId;
+                        if (gId == "0") continue;
+
+                        if (savingsManager.deleteGoal(gId, currentUser)) {
+                            StorageManager::saveSavingsToFile(savingsManager, savingsFilename);
+                            cout << ((lang == AppLanguage::Ukrainian) ? "✅ Ціль видалено!\n" : "✅ Goal deleted!\n");
+                        } else {
+                            cout << ((lang == AppLanguage::Ukrainian) ? "❌ Помилка! Ціль не знайдено або доступ заборонено.\n" : "❌ Error! Goal not found or access denied.\n");
+                        }
+                        waitUser();
+                    }
+                }
+            }
+        }
+
+        // ==========================================
+        // ПІДМЕНЮ 6: НАЛАШТУВАННЯ
+        // ==========================================
+        else if (mainChoice == 6) {
             while (true) {
                 string header = (lang == AppLanguage::Ukrainian) ? "--- ⚙️ НАЛАШТУВАННЯ ---" : "--- ⚙️ SETTINGS ---";
                 vector<string> options;
