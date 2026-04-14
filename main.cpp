@@ -84,9 +84,18 @@ int main() {
     AppLanguage lang = (langIdx == 1) ? AppLanguage::English : AppLanguage::Ukrainian;
 
     string currentUser;
-    clearScreen();
-    cout << ((lang == AppLanguage::Ukrainian) ? "Увійдіть у систему (Введіть ваше ім'я):\n> " : "Log in (Enter your name):\n> ");
-    getline(cin, currentUser);
+    while (true) {
+        clearScreen();
+        cout << ((lang == AppLanguage::Ukrainian) ? "Увійдіть у систему (Введіть ваше ім'я):\n> " : "Log in (Enter your name):\n> ");
+        getline(cin, currentUser);
+        // Видалити пробіли з початку та кінця
+        currentUser.erase(0, currentUser.find_first_not_of(" \t"));
+        currentUser.erase(currentUser.find_last_not_of(" \t") + 1);
+        if (!currentUser.empty()) break;
+        cout << ((lang == AppLanguage::Ukrainian) ? "Помилка: Ім'я не може бути порожнім!\n" : "Error: Name cannot be empty!\n");
+        cout << ((lang == AppLanguage::Ukrainian) ? "Натисніть Enter для повтору..." : "Press Enter to retry...");
+        cin.get();
+    }
 
     // ==========================================
     // ГОЛОВНИЙ ЦИКЛ ПРОГРАМИ
