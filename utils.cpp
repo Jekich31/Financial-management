@@ -16,7 +16,9 @@ void clearScreen() {
 void waitUser() {
     cout << "\nНатисніть Enter для продовження / Press Enter to continue...";
     cin.clear();
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    if (cin.rdbuf()->in_avail() > 0) {
+        cin.ignore(cin.rdbuf()->in_avail());
+    }
     cin.get();
 }
 
