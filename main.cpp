@@ -45,13 +45,9 @@ void showFastAccountList(AccountManager& manager, const string& currentUser, App
 }
 
 string toSortable(const string& date) {
-    if (date.length() < 10) return "0"; // Якщо це "0" або некоректна дата
-
-    string day = date.substr(0, 2);
-    string month = date.substr(3, 2);
-    string year = date.substr(6, 4);
-
-    return year + month + day;
+    // Dates are already in YYYY-MM-DD format, which sorts lexicographically
+    if (date.length() < 10) return "0";
+    return date;
 }
 
 
@@ -1142,8 +1138,12 @@ int main() {
                 if (sub == 1) { // Змінити користувача
                     clearScreen();
                     cout << ((lang == AppLanguage::Ukrainian) ? "Введіть ім'я (0 - вихід):\n> " : "Enter name (0 - exit):\n> ");
-                    getline(cin, currentUser);
-                    if (currentUser == "0") continue;
+                    string newUser;
+                    getline(cin, newUser);
+                    newUser.erase(0, newUser.find_first_not_of(" \t"));
+                    newUser.erase(newUser.find_last_not_of(" \t") + 1);
+                    if (newUser == "0" || newUser.empty()) continue;
+                    currentUser = sanitize(newUser);
                     cout << "-> OK: " << currentUser << "!\n";
                     waitUser(); break; // Виходимо в головне меню після зміни
                 }

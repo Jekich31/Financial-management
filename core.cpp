@@ -249,18 +249,18 @@ void StorageManager::loadFromFile(AccountManager& manager, const string& filenam
         if (line.empty()) continue;
         vector<string> parts = split(line, '|');
 
-        if (parts[0] == "ACC") {
+        if (parts[0] == "ACC" && parts.size() >= 7) {
             string type = parts[1], id = parts[2], name = parts[3], curr = parts[4], owner = parts[5];
             double balance = stod(parts[6]);
             maxAccId = max(maxAccId, stoi(id));
 
             if (type == "WALLET") currentAcc = make_shared<Wallet>(id, name, curr, owner, balance);
-            else if (type == "CREDIT_CARD") currentAcc = make_shared<CreditCard>(id, name, curr, owner, stod(parts[7]), balance);
-            else if (type == "SHARED_BUDGET") currentAcc = make_shared<SharedBudget>(id, name, curr, split(parts[7], ','), balance);
+            else if (type == "CREDIT_CARD" && parts.size() >= 8) currentAcc = make_shared<CreditCard>(id, name, curr, owner, stod(parts[7]), balance);
+            else if (type == "SHARED_BUDGET" && parts.size() >= 8) currentAcc = make_shared<SharedBudget>(id, name, curr, split(parts[7], ','), balance);
 
             manager.addAccount(currentAcc);
         }
-        else if (parts[0] == "TX" && currentAcc != nullptr) {
+        else if (parts[0] == "TX" && currentAcc != nullptr && parts.size() >= 8) {
             Transaction tx{ parts[1], stod(parts[2]), parts[3], parts[4], parts[5], (parts[6] == "1"), parts[7] };
             maxTxId = max(maxTxId, stoi(tx.id));
             currentAcc->addTransaction(tx);
