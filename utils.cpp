@@ -10,7 +10,7 @@
 using namespace std;
 
 void clearScreen() {
-    system("cls");
+    system("clear");
 }
 
 void waitUser() {

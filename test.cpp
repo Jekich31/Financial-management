@@ -19,19 +19,21 @@ int interactiveMenu(const string& header, const vector<string>& options) {
         }
 
 
-        int key = _getch();
+        int key = std::cin.get();
 
-        if (key == 224 || key == 0) {
-            key = _getch();
-            if (key == 72) { 
-                selected = (selected - 1 + numOptions) % numOptions;
-            }
-            else if (key == 80) { 
-                selected = (selected + 1) % numOptions;
+        if (key == 27) {
+            int next1 = std::cin.get();
+            if (next1 == '[') {
+                int next2 = std::cin.get();
+                if (next2 == 'A') {
+                    selected = (selected - 1 + numOptions) % numOptions;
+                }
+                else if (next2 == 'B') {
+                    selected = (selected + 1) % numOptions;
+                }
             }
         }
-
-        else if (key == 13) {
+        else if (key == '\n' || key == '\r' || key == 13) {
             return selected;
         }
     }
