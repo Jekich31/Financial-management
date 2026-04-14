@@ -13,6 +13,13 @@
 #include "test.h"
 using namespace std;
 
+// Helper to format double without trailing zeros
+string fmtDouble(double val) {
+    ostringstream oss;
+    oss << val;
+    return oss.str();
+}
+
 // Допоміжна функція для швидкого показу рахунків
 void showFastAccountList(AccountManager& manager, const string& currentUser, AppLanguage lang) {
     auto accounts = manager.getAccounts();
@@ -199,29 +206,38 @@ int main() {
                 else if (sub == 2) { // Створення рахунку
                     clearScreen();
                     int type;
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Тип (0-Відміна, 1-Скарбничка, 2-Кредитка, 3-Спільний бюджет): " : "Type (0-Cancel, 1-Debit wallet, 2-Credit Card, 3-Shared Budget): ");
-                    while (!(cin >> type) || (type < 0 || type > 3)) {
-                        cout << ((lang == AppLanguage::Ukrainian) ? "Помилка! Введіть 0, 1, 2 або 3: " : "Error! Enter 0, 1, 2 or 3: ");
-                        cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    {
+                        string typeHeader = (lang == AppLanguage::Ukrainian) ? "Оберіть тип рахунку:" : "Choose account type:";
+                        vector<string> typeOptions;
+                        if (lang == AppLanguage::Ukrainian) {
+                            typeOptions = { "Скарбничка", "Кредитка", "Спільний бюджет", "Відміна" };
+                        } else {
+                            typeOptions = { "Debit wallet", "Credit Card", "Shared Budget", "Cancel" };
+                        }
+                        int typeSel = interactiveMenu(typeHeader, typeOptions);
+                        if (typeSel == 3) continue;
+                        type = typeSel + 1; // 0->1, 1->2, 2->3
                     }
-                    if (type == 0) continue;
 
-                    cin.ignore();
+                    cin.clear();
+                    tcflush(STDIN_FILENO, TCIFLUSH);
                     string name, currency;
                     cout << ((lang == AppLanguage::Ukrainian) ? "Назва рахунку: " : "Account name: ");
                     getline(cin, name);
 
-                    int currChoice;
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Оберіть валюту (1-UAH, 2-USD, 3-EUR): " : "Choose currency (1-UAH, 2-USD, 3-EUR): ");
-                    while (!(cin >> currChoice) || currChoice < 1 || currChoice > 3) {
-                        cout << ((lang == AppLanguage::Ukrainian) ? "Помилка! Введіть 1, 2 або 3: " : "Error! Enter 1, 2 or 3: ");
-                        cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    {
+                        string currHeader = (lang == AppLanguage::Ukrainian) ? "Оберіть валюту:" : "Choose currency:";
+                        vector<string> currOptions = { "UAH", "USD", "EUR" };
+                        int currSel = interactiveMenu(currHeader, currOptions);
+                        if (currSel == 0) currency = "UAH";
+                        else if (currSel == 1) currency = "USD";
+                        else currency = "EUR";
                     }
-                    if (currChoice == 1) currency = "UAH";
-                    else if (currChoice == 2) currency = "USD";
-                    else currency = "EUR";
 
                     string newId = manager.generateAccId();
+
+                    cin.clear();
+                    tcflush(STDIN_FILENO, TCIFLUSH);
 
                     if (type == 2) {
                         cout << ((lang == AppLanguage::Ukrainian) ? "Кредитний ліміт: " : "Credit limit: ");
@@ -250,14 +266,29 @@ int main() {
                     waitUser();
                 }
                 else if (sub == 3) { // Редагування
-                    clearScreen(); showFastAccountList(manager, currentUser, lang);
-                    cout << ((lang == AppLanguage::Ukrainian) ? "ID рахунку для зміни (0-відміна): " : "Account ID to edit (0-cancel): ");
-                    string accId; cin >> accId;
-                    if (accId == "0") continue;
+                    clearScreen();
+                    vector<shared_ptr<Account>> editableAccounts;
+                    vector<string> editOptions;
+                    for (const auto& acc : manager.getAccounts()) {
+                        if (acc->getOwner() == currentUser) {
+                            editableAccounts.push_back(acc);
+                            editOptions.push_back("[" + acc->getId() + "] " + acc->getName() + " (" + fmtDouble(acc->getBalance()) + " " + acc->getCurrency() + ")");
+                        }
+                    }
+                    if (editableAccounts.empty()) {
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Рахунків не знайдено.\n" : "No accounts found.\n");
+                        waitUser(); continue;
+                    }
+                    editOptions.push_back((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel");
+                    string editHeader = (lang == AppLanguage::Ukrainian) ? "Оберіть рахунок для зміни:" : "Choose account to edit:";
+                    int editSel = interactiveMenu(editHeader, editOptions);
+                    if (editSel == (int)editableAccounts.size()) continue;
+                    string accId = editableAccounts[editSel]->getId();
 
                     auto acc = manager.getAccountById(accId);
                     if (acc && acc->getOwner() == currentUser) {
-                        cin.ignore();
+                        cin.clear();
+                        tcflush(STDIN_FILENO, TCIFLUSH);
                         cout << ((lang == AppLanguage::Ukrainian) ? "Нова назва рахунку: " : "New account name: ");
                         string newName; getline(cin, newName);
                         double newLimit = -1.0;
@@ -275,14 +306,26 @@ int main() {
                     waitUser();
                 }
                 else if (sub == 4) { // Видалення
-                    clearScreen(); showFastAccountList(manager, currentUser, lang);
-                    cout << ((lang == AppLanguage::Ukrainian) ? "ID рахунку для видалення (0-відміна): " : "Account ID to delete (0-cancel): ");
-                    string accId; cin >> accId;
-                    if (accId != "0" && manager.deleteAccount(accId, currentUser)) {
-                        StorageManager::saveToFile(manager, dbFilename);
+                    clearScreen();
+                    vector<shared_ptr<Account>> deletableAccounts;
+                    vector<string> delOptions;
+                    for (const auto& acc : manager.getAccounts()) {
+                        if (acc->getOwner() == currentUser) {
+                            deletableAccounts.push_back(acc);
+                            delOptions.push_back("[" + acc->getId() + "] " + acc->getName() + " (" + fmtDouble(acc->getBalance()) + " " + acc->getCurrency() + ")");
+                        }
                     }
-                    else if (accId == "0") {
-                        continue;
+                    if (deletableAccounts.empty()) {
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Рахунків не знайдено.\n" : "No accounts found.\n");
+                        waitUser(); continue;
+                    }
+                    delOptions.push_back((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel");
+                    string delHeader = (lang == AppLanguage::Ukrainian) ? "Оберіть рахунок для видалення:" : "Choose account to delete:";
+                    int delSel = interactiveMenu(delHeader, delOptions);
+                    if (delSel == (int)deletableAccounts.size()) continue;
+                    string accId = deletableAccounts[delSel]->getId();
+                    if (manager.deleteAccount(accId, currentUser)) {
+                        StorageManager::saveToFile(manager, dbFilename);
                     }
                     waitUser();
                 }
@@ -324,34 +367,44 @@ int main() {
                 if (sub == 0) break;
 
                 if (sub == 1 || sub == 2) { // Дохід або Витрата
-                    clearScreen(); showFastAccountList(manager, currentUser, lang);
-                    string accId, category, desc;
+                    clearScreen();
+                    string category, desc;
                     shared_ptr<Account> selectedAcc = nullptr;
 
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Введіть ID рахунку (0 для відміни): " : "Enter Account ID (0 to cancel): ");
-                    cin >> accId;
-                    if (accId == "0") continue;
-
-                    selectedAcc = manager.getAccountById(accId);
-                    if (!selectedAcc || !selectedAcc->hasAccess(currentUser)) {
-                        cout << ((lang == AppLanguage::Ukrainian) ? "Помилка доступу!\n" : "Access denied!\n");
+                    // Build interactive account list
+                    vector<shared_ptr<Account>> accessibleAccounts;
+                    vector<string> accOptions;
+                    for (const auto& acc : manager.getAccounts()) {
+                        if (acc->hasAccess(currentUser)) {
+                            accessibleAccounts.push_back(acc);
+                            string label = "[" + acc->getId() + "] " + acc->getName()
+                                + " (" + fmtDouble(acc->getBalance()) + " " + acc->getCurrency() + ")";
+                            if (acc->isShared()) label += (lang == AppLanguage::Ukrainian) ? " (Спільний)" : " (Shared)";
+                            accOptions.push_back(label);
+                        }
+                    }
+                    if (accessibleAccounts.empty()) {
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Рахунків не знайдено.\n" : "No accounts found.\n");
                         waitUser(); continue;
                     }
+                    accOptions.push_back((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel");
+                    string accHeader = (lang == AppLanguage::Ukrainian) ? "Оберіть рахунок:" : "Choose account:";
+                    int accSel = interactiveMenu(accHeader, accOptions);
+                    if (accSel == (int)accessibleAccounts.size()) continue;
+                    selectedAcc = accessibleAccounts[accSel];
+                    string accId = selectedAcc->getId();
 
                     string actingUser = currentUser;
                     if (selectedAcc->isShared()) {
                         auto sharedAcc = dynamic_pointer_cast<SharedBudget>(selectedAcc);
                         auto members = sharedAcc->getMembers();
-                        cout << ((lang == AppLanguage::Ukrainian) ? "Хто здійснює операцію?\n" : "Who is making the transaction?\n");
-                        for (size_t i = 0; i < members.size(); ++i) cout << i + 1 << ". " << members[i] << "\n";
-                        cout << "> ";
-                        int userChoice;
-                        while (!(cin >> userChoice) || userChoice < 1 || userChoice > members.size()) {
-                            cout << "Error: "; cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                        }
-                        actingUser = members[userChoice - 1];
+                        string memberHeader = (lang == AppLanguage::Ukrainian) ? "Хто здійснює операцію?" : "Who is making the transaction?";
+                        int memberSel = interactiveMenu(memberHeader, members);
+                        actingUser = members[memberSel];
                     }
 
+                    cin.clear();
+                    tcflush(STDIN_FILENO, TCIFLUSH);
                     cout << ((lang == AppLanguage::Ukrainian) ? "Сума: " : "Amount: ");
                     double amount = getValidDouble();
                     cin.ignore();
@@ -372,19 +425,49 @@ int main() {
                     waitUser();
                 }
                 else if (sub == 3) { // Переказ
-                    clearScreen(); showFastAccountList(manager, currentUser, lang);
-                    cout << ((lang == AppLanguage::Ukrainian) ? "ID ВІДПРАВНИКА (0-відміна): " : "SENDER ID (0-cancel): ");
-                    string fromId; cin >> fromId; if (fromId == "0") continue;
+                    clearScreen();
+                    // Build interactive sender account list
+                    vector<shared_ptr<Account>> senderAccounts;
+                    vector<string> senderOptions;
+                    for (const auto& acc : manager.getAccounts()) {
+                        if (acc->hasAccess(currentUser)) {
+                            senderAccounts.push_back(acc);
+                            senderOptions.push_back("[" + acc->getId() + "] " + acc->getName()
+                                + " (" + fmtDouble(acc->getBalance()) + " " + acc->getCurrency() + ")");
+                        }
+                    }
+                    if (senderAccounts.empty()) {
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Рахунків не знайдено.\n" : "No accounts found.\n");
+                        waitUser(); continue;
+                    }
+                    senderOptions.push_back((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel");
+                    string senderHeader = (lang == AppLanguage::Ukrainian) ? "Оберіть рахунок ВІДПРАВНИКА:" : "Choose SENDER account:";
+                    int senderSel = interactiveMenu(senderHeader, senderOptions);
+                    if (senderSel == (int)senderAccounts.size()) continue;
+                    string fromId = senderAccounts[senderSel]->getId();
 
-                    cout << ((lang == AppLanguage::Ukrainian) ? "ID ОТРИМУВАЧА: " : "RECEIVER ID: ");
-                    string toId; cin >> toId;
+                    // Build interactive receiver account list (all accounts)
+                    vector<shared_ptr<Account>> receiverAccounts;
+                    vector<string> receiverOptions;
+                    for (const auto& acc : manager.getAccounts()) {
+                        if (acc->getId() != fromId) {
+                            receiverAccounts.push_back(acc);
+                            receiverOptions.push_back("[" + acc->getId() + "] " + acc->getName()
+                                + " (" + fmtDouble(acc->getBalance()) + " " + acc->getCurrency() + ")");
+                        }
+                    }
+                    if (receiverAccounts.empty()) {
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Немає інших рахунків.\n" : "No other accounts.\n");
+                        waitUser(); continue;
+                    }
+                    receiverOptions.push_back((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel");
+                    string receiverHeader = (lang == AppLanguage::Ukrainian) ? "Оберіть рахунок ОТРИМУВАЧА:" : "Choose RECEIVER account:";
+                    int receiverSel = interactiveMenu(receiverHeader, receiverOptions);
+                    if (receiverSel == (int)receiverAccounts.size()) continue;
+                    string toId = receiverAccounts[receiverSel]->getId();
 
                     auto accFrom = manager.getAccountById(fromId);
                     auto accTo = manager.getAccountById(toId);
-                    if (!accFrom || !accTo) {
-                        cout << ((lang == AppLanguage::Ukrainian) ? "Помилка! Рахунок не знайдено.\n" : "Error! Account not found.\n");
-                        waitUser(); continue;
-                    }
 
                     if (accFrom->getCurrency() != accTo->getCurrency()) {
                         double rateFrom = CurrencyManager::getInstance().getRate(accFrom->getCurrency());
@@ -393,6 +476,8 @@ int main() {
                             << "1 " << accFrom->getCurrency() << " = " << (rateFrom / rateTo) << " " << accTo->getCurrency() << "\n\n";
                     }
 
+                    cin.clear();
+                    tcflush(STDIN_FILENO, TCIFLUSH);
                     cout << ((lang == AppLanguage::Ukrainian) ? "Сума переказу: " : "Transfer amount: ");
                     double amount = getValidDouble();
                     cout << ((lang == AppLanguage::Ukrainian) ? "Дата (DD.MM.YYYY): " : "Date (DD.MM.YYYY): ");
@@ -444,11 +529,28 @@ int main() {
                 if (sub == 0) break;
 
                 if (sub == 1) {
-                    clearScreen(); showFastAccountList(manager, currentUser, lang);
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Введіть ID рахунку (0-відміна): " : "Enter Account ID (0-cancel): ");
-                    string accId; cin >> accId;
-                    if (accId == "0") continue;
-                    if (accId != "0") {
+                    clearScreen();
+                    vector<shared_ptr<Account>> histAccounts;
+                    vector<string> histOptions;
+                    for (const auto& acc : manager.getAccounts()) {
+                        if (acc->hasAccess(currentUser)) {
+                            histAccounts.push_back(acc);
+                            string label = "[" + acc->getId() + "] " + acc->getName()
+                                + " (" + fmtDouble(acc->getBalance()) + " " + acc->getCurrency() + ")";
+                            if (acc->isShared()) label += (lang == AppLanguage::Ukrainian) ? " (Спільний)" : " (Shared)";
+                            histOptions.push_back(label);
+                        }
+                    }
+                    if (histAccounts.empty()) {
+                        cout << ((lang == AppLanguage::Ukrainian) ? "Рахунків не знайдено.\n" : "No accounts found.\n");
+                        waitUser(); continue;
+                    }
+                    histOptions.push_back((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel");
+                    string histHeader = (lang == AppLanguage::Ukrainian) ? "Оберіть рахунок:" : "Choose account:";
+                    int histSel = interactiveMenu(histHeader, histOptions);
+                    if (histSel == (int)histAccounts.size()) continue;
+                    string accId = histAccounts[histSel]->getId();
+                    {
                         auto acc = manager.getAccountById(accId);
                         if (!acc || !acc->hasAccess(currentUser)) {
                             cout << ((lang == AppLanguage::Ukrainian) ? "Помилка доступу.\n" : "Access denied.\n");
@@ -595,20 +697,15 @@ int main() {
 
                 if (sub == 1) { // Капітал
                     clearScreen();
-                    int targetCurr;
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Оберіть валюту (0-Вихід, 1-UAH, 2-USD, 3-EUR): " : "Choose currency (0-exit, 1-UAH, 2-USD, 3-EUR): ");
-                    while (!(cin >> targetCurr) || targetCurr < 0 || targetCurr > 3) {
-                        cout << ((lang == AppLanguage::Ukrainian) ? "Помилка! Введіть 1, 2 або 3: " : "Error! Enter 1, 2 or 3: ");
-                        cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                    }
-                    if (targetCurr == 0) continue;
-                    std::string currencyStr;
-                    switch (targetCurr) {
-                    case 1: currencyStr = "UAH"; break;
-                    case 2: currencyStr = "USD"; break;
-                    case 3: currencyStr = "EUR"; break;
-                    default: currencyStr = "UNKNOWN"; break;
-                    }
+                    {
+                        string currHeader = (lang == AppLanguage::Ukrainian) ? "Оберіть валюту:" : "Choose currency:";
+                        vector<string> currOptions = { "UAH", "USD", "EUR", ((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel") };
+                        int currSel = interactiveMenu(currHeader, currOptions);
+                        if (currSel == 3) continue;
+                        std::string currencyStr;
+                        if (currSel == 0) currencyStr = "UAH";
+                        else if (currSel == 1) currencyStr = "USD";
+                        else currencyStr = "EUR";
                     double total = 0.0; bool hasAcc = false;
                     try {
                         for (const auto& acc : manager.getAccounts()) {
@@ -623,6 +720,7 @@ int main() {
                     catch (...) {
                         cout << ((lang == AppLanguage::Ukrainian) ? "Помилка! Валюта не підтримується.\n" : "Error! Currency not supported.\n");
                     }
+                    }
                     waitUser();
                 }
                 else if (sub == 2) { // Оновити курси
@@ -631,18 +729,19 @@ int main() {
                     cout << "USD: " << CurrencyManager::getInstance().getRate("USD") << "\n";
                     cout << "EUR: " << CurrencyManager::getInstance().getRate("EUR") << "\n\n";
 
-                    string curr;
-                    cout << ((lang == AppLanguage::Ukrainian) ? "Яку валюту оновити? (USD, EUR або 0): " : "Currency to update? (USD, EUR or 0): ");
-                    cin >> curr; if (curr == "0") continue;
-                    transform(curr.begin(), curr.end(), curr.begin(), ::toupper);
-
-                    if (curr == "USD" || curr == "EUR") {
+                    {
+                        string rateHeader = (lang == AppLanguage::Ukrainian) ? "Яку валюту оновити?" : "Currency to update?";
+                        vector<string> rateOptions = { "USD", "EUR", ((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel") };
+                        int rateSel = interactiveMenu(rateHeader, rateOptions);
+                        if (rateSel == 2) continue;
+                        string curr = (rateSel == 0) ? "USD" : "EUR";
+                        cin.clear();
+                        tcflush(STDIN_FILENO, TCIFLUSH);
                         cout << ((lang == AppLanguage::Ukrainian) ? "Новий курс: " : "New rate: ");
                         double newRate = getValidDouble();
                         CurrencyManager::getInstance().updateRate(curr, newRate);
                         cout << "-> OK!\n";
                     }
-                    else cout << "Error.\n";
                     waitUser();
                 }
             }
@@ -754,6 +853,8 @@ int main() {
                     else if (subSel == 1) {
                         clearScreen();
                         string name, currency, deadline;
+                        cin.clear();
+                        tcflush(STDIN_FILENO, TCIFLUSH);
                         cout << ((lang == AppLanguage::Ukrainian) ? "Назва цілі: " : "Goal name: ");
                         getline(cin, name);
                         if (name.empty()) { cout << ((lang == AppLanguage::Ukrainian) ? "Помилка!\n" : "Error!\n"); waitUser(); continue; }
@@ -761,16 +862,17 @@ int main() {
                         cout << ((lang == AppLanguage::Ukrainian) ? "Цільова сума: " : "Target amount: ");
                         double target = getValidDouble();
 
-                        int currChoice;
-                        cout << ((lang == AppLanguage::Ukrainian) ? "Валюта (1-UAH, 2-USD, 3-EUR): " : "Currency (1-UAH, 2-USD, 3-EUR): ");
-                        while (!(cin >> currChoice) || currChoice < 1 || currChoice > 3) {
-                            cout << ((lang == AppLanguage::Ukrainian) ? "Помилка! 1, 2 або 3: " : "Error! 1, 2 or 3: ");
-                            cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        {
+                            string currHeader = (lang == AppLanguage::Ukrainian) ? "Оберіть валюту:" : "Choose currency:";
+                            vector<string> currOptions = { "UAH", "USD", "EUR" };
+                            int currSel = interactiveMenu(currHeader, currOptions);
+                            if (currSel == 0) currency = "UAH";
+                            else if (currSel == 1) currency = "USD";
+                            else currency = "EUR";
                         }
-                        if (currChoice == 1) currency = "UAH";
-                        else if (currChoice == 2) currency = "USD";
-                        else currency = "EUR";
 
+                        cin.clear();
+                        tcflush(STDIN_FILENO, TCIFLUSH);
                         cout << ((lang == AppLanguage::Ukrainian) ? "Дедлайн (DD.MM.YYYY, 0-без дедлайну): " : "Deadline (DD.MM.YYYY, 0-no deadline): ");
                         deadline = getValidDate(lang);
 
@@ -797,27 +899,26 @@ int main() {
                     // === ADD FUNDS ===
                     else if (subSel == 2) {
                         clearScreen();
-                        cout << ((lang == AppLanguage::Ukrainian) ? "--- 💵 ПОПОВНЕННЯ ---\n" : "--- 💵 ADD FUNDS ---\n");
-                        bool found = false;
+                        vector<SavingsGoal*> fundGoals;
+                        vector<string> fundOptions;
                         for (auto& goal : savingsManager.getGoals()) {
                             if (goal.isShared() != isShared || !goal.hasAccess(currentUser)) continue;
-                            found = true;
-                            cout << " [" << goal.getId() << "] " << goal.getName()
-                                << " (" << goal.getCurrentAmount() << "/" << goal.getTargetAmount() << " " << goal.getCurrency() << ")\n";
+                            fundGoals.push_back(&goal);
+                            fundOptions.push_back("[" + goal.getId() + "] " + goal.getName()
+                                + " (" + fmtDouble(goal.getCurrentAmount()) + "/" + fmtDouble(goal.getTargetAmount()) + " " + goal.getCurrency() + ")");
                         }
-                        if (!found) {
+                        if (fundGoals.empty()) {
                             cout << ((lang == AppLanguage::Ukrainian) ? "Цілей не знайдено.\n" : "No goals found.\n");
                             waitUser(); continue;
                         }
-                        cout << ((lang == AppLanguage::Ukrainian) ? "ID цілі (0-відміна): " : "Goal ID (0-cancel): ");
-                        string gId; cin >> gId;
-                        if (gId == "0") continue;
+                        fundOptions.push_back((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel");
+                        string fundHeader = (lang == AppLanguage::Ukrainian) ? "--- 💵 ПОПОВНЕННЯ ---" : "--- 💵 ADD FUNDS ---";
+                        int fundSel = interactiveMenu(fundHeader, fundOptions);
+                        if (fundSel == (int)fundGoals.size()) continue;
 
-                        auto* goal = savingsManager.getGoalById(gId);
-                        if (!goal || goal->isShared() != isShared || !goal->hasAccess(currentUser)) {
-                            cout << ((lang == AppLanguage::Ukrainian) ? "Помилка доступу!\n" : "Access denied!\n");
-                            waitUser(); continue;
-                        }
+                        auto* goal = fundGoals[fundSel];
+                        cin.clear();
+                        tcflush(STDIN_FILENO, TCIFLUSH);
                         cout << ((lang == AppLanguage::Ukrainian) ? "Сума поповнення: " : "Amount to add: ");
                         double amount = getValidDouble();
                         goal->addFunds(amount);
@@ -830,27 +931,26 @@ int main() {
                     // === WITHDRAW ===
                     else if (subSel == 3) {
                         clearScreen();
-                        cout << ((lang == AppLanguage::Ukrainian) ? "--- 💸 ЗНЯТТЯ КОШТІВ ---\n" : "--- 💸 WITHDRAW ---\n");
-                        bool found = false;
+                        vector<SavingsGoal*> wdGoals;
+                        vector<string> wdOptions;
                         for (auto& goal : savingsManager.getGoals()) {
                             if (goal.isShared() != isShared || !goal.hasAccess(currentUser)) continue;
-                            found = true;
-                            cout << " [" << goal.getId() << "] " << goal.getName()
-                                << " (" << goal.getCurrentAmount() << " " << goal.getCurrency() << ")\n";
+                            wdGoals.push_back(&goal);
+                            wdOptions.push_back("[" + goal.getId() + "] " + goal.getName()
+                                + " (" + fmtDouble(goal.getCurrentAmount()) + " " + goal.getCurrency() + ")");
                         }
-                        if (!found) {
+                        if (wdGoals.empty()) {
                             cout << ((lang == AppLanguage::Ukrainian) ? "Цілей не знайдено.\n" : "No goals found.\n");
                             waitUser(); continue;
                         }
-                        cout << ((lang == AppLanguage::Ukrainian) ? "ID цілі (0-відміна): " : "Goal ID (0-cancel): ");
-                        string gId; cin >> gId;
-                        if (gId == "0") continue;
+                        wdOptions.push_back((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel");
+                        string wdHeader = (lang == AppLanguage::Ukrainian) ? "--- 💸 ЗНЯТТЯ КОШТІВ ---" : "--- 💸 WITHDRAW ---";
+                        int wdSel = interactiveMenu(wdHeader, wdOptions);
+                        if (wdSel == (int)wdGoals.size()) continue;
 
-                        auto* goal = savingsManager.getGoalById(gId);
-                        if (!goal || goal->isShared() != isShared || !goal->hasAccess(currentUser)) {
-                            cout << ((lang == AppLanguage::Ukrainian) ? "Помилка доступу!\n" : "Access denied!\n");
-                            waitUser(); continue;
-                        }
+                        auto* goal = wdGoals[wdSel];
+                        cin.clear();
+                        tcflush(STDIN_FILENO, TCIFLUSH);
                         cout << ((lang == AppLanguage::Ukrainian) ? "Сума зняття (макс " : "Withdraw amount (max ")
                             << goal->getCurrentAmount() << "): ";
                         double amount = getValidDouble();
@@ -866,29 +966,31 @@ int main() {
                     // === EDIT ===
                     else if (subSel == 4) {
                         clearScreen();
-                        cout << ((lang == AppLanguage::Ukrainian) ? "--- ✏️ РЕДАГУВАННЯ ---\n" : "--- ✏️ EDIT GOAL ---\n");
-                        bool found = false;
+                        vector<SavingsGoal*> editGoals;
+                        vector<string> editGoalOptions;
                         for (auto& goal : savingsManager.getGoals()) {
                             if (goal.isShared() != isShared || !goal.hasAccess(currentUser)) continue;
-                            found = true;
-                            cout << " [" << goal.getId() << "] " << goal.getName()
-                                << " | 🎯 " << goal.getTargetAmount() << " " << goal.getCurrency()
-                                << " | 📅 " << goal.getDeadline() << "\n";
+                            editGoals.push_back(&goal);
+                            editGoalOptions.push_back("[" + goal.getId() + "] " + goal.getName()
+                                + " | 🎯 " + fmtDouble(goal.getTargetAmount()) + " " + goal.getCurrency()
+                                + " | 📅 " + goal.getDeadline());
                         }
-                        if (!found) {
+                        if (editGoals.empty()) {
                             cout << ((lang == AppLanguage::Ukrainian) ? "Цілей не знайдено.\n" : "No goals found.\n");
                             waitUser(); continue;
                         }
-                        cout << ((lang == AppLanguage::Ukrainian) ? "ID цілі (0-відміна): " : "Goal ID (0-cancel): ");
-                        string gId; cin >> gId;
-                        if (gId == "0") continue;
+                        editGoalOptions.push_back((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel");
+                        string editGoalHeader = (lang == AppLanguage::Ukrainian) ? "--- ✏️ РЕДАГУВАННЯ ---" : "--- ✏️ EDIT GOAL ---";
+                        int editGoalSel = interactiveMenu(editGoalHeader, editGoalOptions);
+                        if (editGoalSel == (int)editGoals.size()) continue;
 
-                        auto* goal = savingsManager.getGoalById(gId);
-                        if (!goal || goal->getOwner() != currentUser) {
+                        auto* goal = editGoals[editGoalSel];
+                        if (goal->getOwner() != currentUser) {
                             cout << ((lang == AppLanguage::Ukrainian) ? "Помилка доступу!\n" : "Access denied!\n");
                             waitUser(); continue;
                         }
-                        cin.ignore();
+                        cin.clear();
+                        tcflush(STDIN_FILENO, TCIFLUSH);
                         cout << ((lang == AppLanguage::Ukrainian) ? "Нова назва (Enter - без змін): " : "New name (Enter - no change): ");
                         string newName; getline(cin, newName);
                         if (!newName.empty()) goal->setName(sanitize(newName));
@@ -909,57 +1011,70 @@ int main() {
                     // === MANAGE MEMBERS (shared only) ===
                     else if (isShared && subSel == membersIdx) {
                         clearScreen();
-                        cout << ((lang == AppLanguage::Ukrainian) ? "--- 👥 КЕРУВАННЯ УЧАСНИКАМИ ---\n" : "--- 👥 MANAGE MEMBERS ---\n");
-                        bool found = false;
+                        vector<SavingsGoal*> memberGoals;
+                        vector<string> memberGoalOptions;
                         for (auto& goal : savingsManager.getGoals()) {
                             if (!goal.isShared() || !goal.hasAccess(currentUser)) continue;
-                            found = true;
-                            cout << " [" << goal.getId() << "] " << goal.getName() << " | 👥 ";
+                            memberGoals.push_back(&goal);
+                            string label = "[" + goal.getId() + "] " + goal.getName() + " | 👥 ";
                             auto members = goal.getMembers();
                             for (size_t i = 0; i < members.size(); ++i) {
-                                cout << members[i];
-                                if (i < members.size() - 1) cout << ", ";
+                                label += members[i];
+                                if (i < members.size() - 1) label += ", ";
                             }
-                            cout << "\n";
+                            memberGoalOptions.push_back(label);
                         }
-                        if (!found) {
+                        if (memberGoals.empty()) {
                             cout << ((lang == AppLanguage::Ukrainian) ? "Цілей не знайдено.\n" : "No goals found.\n");
                             waitUser(); continue;
                         }
-                        cout << ((lang == AppLanguage::Ukrainian) ? "ID цілі (0-відміна): " : "Goal ID (0-cancel): ");
-                        string gId; cin >> gId;
-                        if (gId == "0") continue;
+                        memberGoalOptions.push_back((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel");
+                        string mgHeader = (lang == AppLanguage::Ukrainian) ? "--- 👥 КЕРУВАННЯ УЧАСНИКАМИ ---" : "--- 👥 MANAGE MEMBERS ---";
+                        int mgSel = interactiveMenu(mgHeader, memberGoalOptions);
+                        if (mgSel == (int)memberGoals.size()) continue;
 
-                        auto* goal = savingsManager.getGoalById(gId);
-                        if (!goal || goal->getOwner() != currentUser) {
+                        auto* goal = memberGoals[mgSel];
+                        if (goal->getOwner() != currentUser) {
                             cout << ((lang == AppLanguage::Ukrainian) ? "Помилка доступу! Тільки власник може керувати.\n" : "Access denied! Only owner can manage.\n");
                             waitUser(); continue;
                         }
 
-                        cout << ((lang == AppLanguage::Ukrainian) ? "1-Додати, 2-Видалити учасника: " : "1-Add, 2-Remove member: ");
-                        int action;
-                        while (!(cin >> action) || (action != 1 && action != 2)) {
-                            cout << "1 or 2: "; cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                        }
-                        cin.ignore();
-                        if (action == 1) {
-                            cout << ((lang == AppLanguage::Ukrainian) ? "Ім'я нового учасника: " : "New member name: ");
-                            string name; getline(cin, name);
-                            goal->addMember(sanitize(name));
-                            cout << ((lang == AppLanguage::Ukrainian) ? "✅ Учасника додано!\n" : "✅ Member added!\n");
-                        } else {
-                            auto members = goal->getMembers();
-                            cout << ((lang == AppLanguage::Ukrainian) ? "Поточні учасники:\n" : "Current members:\n");
-                            for (size_t i = 0; i < members.size(); ++i) {
-                                cout << i + 1 << ". " << members[i] << "\n";
-                            }
-                            cout << ((lang == AppLanguage::Ukrainian) ? "Ім'я для видалення: " : "Name to remove: ");
-                            string name; getline(cin, name);
-                            if (name == goal->getOwner()) {
-                                cout << ((lang == AppLanguage::Ukrainian) ? "❌ Не можна видалити власника!\n" : "❌ Cannot remove the owner!\n");
+                        {
+                            string actionHeader = (lang == AppLanguage::Ukrainian) ? "Оберіть дію:" : "Choose action:";
+                            vector<string> actionOptions;
+                            if (lang == AppLanguage::Ukrainian) {
+                                actionOptions = { "Додати учасника", "Видалити учасника", "Відміна" };
                             } else {
-                                goal->removeMember(name);
-                                cout << ((lang == AppLanguage::Ukrainian) ? "✅ Учасника видалено!\n" : "✅ Member removed!\n");
+                                actionOptions = { "Add member", "Remove member", "Cancel" };
+                            }
+                            int actionSel = interactiveMenu(actionHeader, actionOptions);
+                            if (actionSel == 2) { StorageManager::saveSavingsToFile(savingsManager, savingsFilename); continue; }
+
+                            if (actionSel == 0) {
+                                cin.clear();
+                                tcflush(STDIN_FILENO, TCIFLUSH);
+                                cout << ((lang == AppLanguage::Ukrainian) ? "Ім'я нового учасника: " : "New member name: ");
+                                string name; getline(cin, name);
+                                goal->addMember(sanitize(name));
+                                cout << ((lang == AppLanguage::Ukrainian) ? "✅ Учасника додано!\n" : "✅ Member added!\n");
+                            } else {
+                                auto members = goal->getMembers();
+                                // Filter out owner from removable members
+                                vector<string> removableMembers;
+                                for (const auto& m : members) {
+                                    if (m != goal->getOwner()) removableMembers.push_back(m);
+                                }
+                                if (removableMembers.empty()) {
+                                    cout << ((lang == AppLanguage::Ukrainian) ? "❌ Немає учасників для видалення!\n" : "❌ No members to remove!\n");
+                                } else {
+                                    removableMembers.push_back((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel");
+                                    string rmHeader = (lang == AppLanguage::Ukrainian) ? "Оберіть учасника для видалення:" : "Choose member to remove:";
+                                    int rmSel = interactiveMenu(rmHeader, removableMembers);
+                                    if (rmSel < (int)removableMembers.size() - 1) {
+                                        goal->removeMember(removableMembers[rmSel]);
+                                        cout << ((lang == AppLanguage::Ukrainian) ? "✅ Учасника видалено!\n" : "✅ Member removed!\n");
+                                    }
+                                }
                             }
                         }
                         StorageManager::saveSavingsToFile(savingsManager, savingsFilename);
@@ -969,22 +1084,24 @@ int main() {
                     // === DELETE ===
                     else if (subSel == deleteIdx) {
                         clearScreen();
-                        cout << ((lang == AppLanguage::Ukrainian) ? "--- 🗑️ ВИДАЛЕННЯ ---\n" : "--- 🗑️ DELETE GOAL ---\n");
-                        bool found = false;
+                        vector<string> delGoalIds;
+                        vector<string> delGoalOptions;
                         for (auto& goal : savingsManager.getGoals()) {
                             if (goal.isShared() != isShared || goal.getOwner() != currentUser) continue;
-                            found = true;
-                            cout << " [" << goal.getId() << "] " << goal.getName()
-                                << " (" << goal.getCurrentAmount() << "/" << goal.getTargetAmount() << " " << goal.getCurrency() << ")\n";
+                            delGoalIds.push_back(goal.getId());
+                            delGoalOptions.push_back("[" + goal.getId() + "] " + goal.getName()
+                                + " (" + fmtDouble(goal.getCurrentAmount()) + "/" + fmtDouble(goal.getTargetAmount()) + " " + goal.getCurrency() + ")");
                         }
-                        if (!found) {
+                        if (delGoalIds.empty()) {
                             cout << ((lang == AppLanguage::Ukrainian) ? "Цілей не знайдено.\n" : "No goals found.\n");
                             waitUser(); continue;
                         }
-                        cout << ((lang == AppLanguage::Ukrainian) ? "ID цілі для видалення (0-відміна): " : "Goal ID to delete (0-cancel): ");
-                        string gId; cin >> gId;
-                        if (gId == "0") continue;
+                        delGoalOptions.push_back((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel");
+                        string delGoalHeader = (lang == AppLanguage::Ukrainian) ? "--- 🗑️ ВИДАЛЕННЯ ---" : "--- 🗑️ DELETE GOAL ---";
+                        int delGoalSel = interactiveMenu(delGoalHeader, delGoalOptions);
+                        if (delGoalSel == (int)delGoalIds.size()) continue;
 
+                        string gId = delGoalIds[delGoalSel];
                         if (savingsManager.deleteGoal(gId, currentUser)) {
                             StorageManager::saveSavingsToFile(savingsManager, savingsFilename);
                             cout << ((lang == AppLanguage::Ukrainian) ? "✅ Ціль видалено!\n" : "✅ Goal deleted!\n");
