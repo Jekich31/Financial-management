@@ -755,7 +755,6 @@ int main() {
                         clearScreen();
                         string name, currency, deadline;
                         cout << ((lang == AppLanguage::Ukrainian) ? "Назва цілі: " : "Goal name: ");
-                        cin.ignore();
                         getline(cin, name);
                         if (name.empty()) { cout << ((lang == AppLanguage::Ukrainian) ? "Помилка!\n" : "Error!\n"); waitUser(); continue; }
 
