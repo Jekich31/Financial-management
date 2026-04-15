@@ -389,3 +389,46 @@ void playCurrencyAnimation() {
          << RESET;
     sleepMs(900);
 }
+
+void playSettingsAnimation() {
+    auto sleepMs = [](int ms) {
+        this_thread::sleep_for(chrono::milliseconds(ms));
+    };
+
+    // Frame 1: Small gear appears
+    clearScreen();
+    cout << "\n\n\n"
+         << "                      " << YELLOW << "  ***  " << RESET << "\n"
+         << "                      " << YELLOW << " *   * " << RESET << "\n"
+         << "                      " << YELLOW << "  ***  " << RESET << "\n"
+         << "\n\n\n" << RESET;
+    sleepMs(600);
+
+    // Frame 2: Full gear with language labels around it
+    clearScreen();
+    cout << "\n\n"
+         << "           " << BLUE << "[" << GREEN << "UA" << BLUE << "]" << RESET << "                " << BLUE << "[" << GREEN << "EN" << BLUE << "]" << RESET << "\n"
+         << "\n"
+         << "                  " << YELLOW << "*********" << RESET << "\n"
+         << "                  " << YELLOW << "**" << CYAN << BOLD << " (@) " << RESET << YELLOW << "**" << RESET << "\n"
+         << "                  " << YELLOW << "*********" << RESET << "\n"
+         << "\n"
+         << "           " << BLUE << "[" << GREEN << "EN" << BLUE << "]" << RESET << "                " << BLUE << "[" << GREEN << "UA" << BLUE << "]" << RESET << "\n"
+         << "\n" << RESET;
+    sleepMs(600);
+
+    // Frame 3: Final frame with title
+    clearScreen();
+    cout << "\n"
+         << "         " << YELLOW << "+---------------------------------+" << RESET << "\n"
+         << "         " << YELLOW << "|" << RESET << "                                 " << YELLOW << "|" << RESET << "\n"
+         << "         " << YELLOW << "|" << RESET << "    " << BLUE << "[" << GREEN << "UA" << BLUE << "]" << RESET << "    " << YELLOW << "*********" << RESET << "    " << BLUE << "[" << GREEN << "EN" << BLUE << "]" << RESET << "    " << YELLOW << "|" << RESET << "\n"
+         << "         " << YELLOW << "|" << RESET << "            " << YELLOW << "**" << CYAN << BOLD << " (@) " << RESET << YELLOW << "**" << RESET << "            " << YELLOW << "|" << RESET << "\n"
+         << "         " << YELLOW << "|" << RESET << "     " << CYAN << "\xF0\x9F\x91\xA4" << RESET << "     " << YELLOW << "*********" << RESET << "     " << CYAN << "\xF0\x9F\x8C\x90" << RESET << "     " << YELLOW << "|" << RESET << "\n"
+         << "         " << YELLOW << "|" << RESET << "                                 " << YELLOW << "|" << RESET << "\n"
+         << "         " << YELLOW << "+---------------------------------+" << RESET << "\n"
+         << "\n"
+         << "            " << CYAN << BOLD << "S  E  T  T  I  N  G  S" << RESET << "\n"
+         << RESET;
+    sleepMs(900);
+}

@@ -1217,6 +1217,7 @@ int main() {
 		// ПІДМЕНЮ 6: НАЛАШТУВАННЯ
 		// ==========================================
 		else if (mainChoice == 6) {
+			playSettingsAnimation();
 			while (true) {
 				string header = (lang == AppLanguage::Ukrainian) ? "--- ⚙️ НАЛАШТУВАННЯ ---" : "--- ⚙️ SETTINGS ---";
 				vector<string> options;

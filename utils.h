@@ -15,3 +15,4 @@ void playDollarSnowAnimation();
 void playBriefcaseAnimation();
 void playChartAnimation();
 void playCurrencyAnimation();
+void playSettingsAnimation();
