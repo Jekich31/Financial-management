@@ -734,6 +734,7 @@ int main() {
 		// ПІДМЕНЮ 4: КАПІТАЛ ТА ВАЛЮТИ
 		// ==========================================
 		else if (mainChoice == 4) {
+			playCurrencyAnimation();
 			while (true) {
 				string header = (lang == AppLanguage::Ukrainian) ? " 🌍 КАПІТАЛ ТА ВАЛЮТИ " : " 🌍 TOTAL NET WORTH & CURRENCIES ";
 				vector<string> options;

@@ -328,3 +328,64 @@ void playDollarSnowAnimation() {
         sleepMs(300);
     }
 }
+
+void playCurrencyAnimation() {
+    auto sleepMs = [](int ms) {
+        this_thread::sleep_for(chrono::milliseconds(ms));
+    };
+
+    const string sym[] = { "$", "\xE2\x82\xAC", "\xC2\xA5", "\xC2\xA3", "\xE2\x82\xB4" };
+    const string clr[] = { GREEN, CYAN, RED, YELLOW, BLUE };
+
+    // Frame 1a: few symbols appear
+    clearScreen();
+    cout << "\n\n"
+         << "          " << clr[0] << sym[0] << RESET << "\n"
+         << "\n"
+         << "                          " << clr[1] << sym[1] << RESET << "\n"
+         << "\n"
+         << "\n"
+         << "              " << clr[2] << sym[2] << RESET << "\n"
+         << "\n\n" << RESET;
+    sleepMs(300);
+
+    // Frame 1b: more symbols scattered
+    clearScreen();
+    cout << "\n\n"
+         << "          " << clr[0] << sym[0] << RESET << "                       " << clr[3] << sym[3] << RESET << "\n"
+         << "\n"
+         << "                          " << clr[1] << sym[1] << RESET << "\n"
+         << "     " << clr[4] << sym[4] << RESET << "\n"
+         << "                                      " << clr[0] << sym[0] << RESET << "\n"
+         << "              " << clr[2] << sym[2] << RESET << "\n"
+         << "                             " << clr[4] << sym[4] << RESET << "\n"
+         << "\n" << RESET;
+    sleepMs(300);
+
+    // Frame 1c: all symbols dense
+    clearScreen();
+    cout << "\n\n"
+         << "     " << clr[4] << sym[4] << RESET << "    " << clr[0] << sym[0] << RESET << "          " << clr[1] << sym[1] << RESET << "       " << clr[3] << sym[3] << RESET << "    " << clr[2] << sym[2] << RESET << "\n"
+         << "                 " << clr[3] << sym[3] << RESET << "                   " << clr[4] << sym[4] << RESET << "\n"
+         << "          " << clr[1] << sym[1] << RESET << "            " << clr[0] << sym[0] << RESET << "\n"
+         << "     " << clr[0] << sym[0] << RESET << "       " << clr[2] << sym[2] << RESET << "       " << clr[4] << sym[4] << RESET << "       " << clr[1] << sym[1] << RESET << "    " << clr[3] << sym[3] << RESET << "\n"
+         << "                          " << clr[3] << sym[3] << RESET << "\n"
+         << "        " << clr[2] << sym[2] << RESET << "    " << clr[4] << sym[4] << RESET << "                  " << clr[0] << sym[0] << RESET << "\n"
+         << "                    " << clr[1] << sym[1] << RESET << "          " << clr[2] << sym[2] << RESET << "\n"
+         << "\n" << RESET;
+    sleepMs(350);
+
+    // Frame 2: full board with title
+    clearScreen();
+    cout << "\n"
+         << "         " << YELLOW << "+---------------------------------+" << RESET << "\n"
+         << "         " << YELLOW << "|" << RESET << "   " << clr[0] << sym[0] << RESET << "     " << clr[1] << sym[1] << RESET << "     " << clr[4] << sym[4] << RESET << "     " << clr[3] << sym[3] << RESET << "     " << clr[2] << sym[2] << RESET << "     " << YELLOW << "|" << RESET << "\n"
+         << "         " << YELLOW << "|" << RESET << "       " << GREEN << "1" << RESET << " " << clr[0] << sym[0] << RESET << "  =  " << CYAN << "43.9" << RESET << " " << clr[4] << sym[4] << RESET << "            " << YELLOW << "|" << RESET << "\n"
+         << "         " << YELLOW << "|" << RESET << "       " << GREEN << "1" << RESET << " " << clr[1] << sym[1] << RESET << "  =  " << CYAN << "51.0" << RESET << " " << clr[4] << sym[4] << RESET << "            " << YELLOW << "|" << RESET << "\n"
+         << "         " << YELLOW << "|" << RESET << "   " << clr[4] << sym[4] << RESET << "     " << clr[2] << sym[2] << RESET << "     " << clr[0] << sym[0] << RESET << "     " << clr[1] << sym[1] << RESET << "     " << clr[3] << sym[3] << RESET << "     " << YELLOW << "|" << RESET << "\n"
+         << "         " << YELLOW << "+---------------------------------+" << RESET << "\n"
+         << "\n"
+         << "          " << CYAN << BOLD << "E X C H A N G E   R A T E S" << RESET << "\n"
+         << RESET;
+    sleepMs(900);
+}
