@@ -10,3 +10,11 @@ savings_data.txt
 *.exe
 nul
 /.vs
+
+# Ignore Visual Studio temporary and build files
+.vs/
+Financia.*/
+*.user
+x64/
+Debug/
+Release/
