@@ -16,3 +16,4 @@ void playBriefcaseAnimation();
 void playChartAnimation();
 void playCurrencyAnimation();
 void playSettingsAnimation();
+void playExitAnimation();

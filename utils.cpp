@@ -432,3 +432,66 @@ void playSettingsAnimation() {
          << RESET;
     sleepMs(900);
 }
+
+void playExitAnimation() {
+    auto sleepMs = [](int ms) {
+        this_thread::sleep_for(chrono::milliseconds(ms));
+    };
+
+    // Frame 1: Sad emojis scattered within frame bounds
+    clearScreen();
+    cout << "\n\n"
+         << "         \xF0\x9F\x98\xA2         \xF0\x9F\x98\xBF         \xF0\x9F\x98\xAD         \xF0\x9F\x98\xA2\n"
+         << "\n"
+         << "               \xF0\x9F\x98\xAD          \xF0\x9F\x98\xA2          \xF0\x9F\x98\xBF\n"
+         << "\n"
+         << "          \xF0\x9F\x98\xBF      \xF0\x9F\x98\xA2     \xF0\x9F\x98\xAD     \xF0\x9F\x98\xBF      \xF0\x9F\x98\xAD\n"
+         << "\n"
+         << "               \xF0\x9F\x98\xA2          \xF0\x9F\x98\xBF          \xF0\x9F\x98\xA2\n"
+         << "\n"
+         << "         \xF0\x9F\x98\xAD         \xF0\x9F\x98\xA2         \xF0\x9F\x98\xBF         \xF0\x9F\x98\xAD\n"
+         << "\n\n" << RESET;
+    sleepMs(600);
+
+    // Frame 2: Sad emojis surround "don't leave" text
+    clearScreen();
+    cout << "\n\n"
+         << "         \xF0\x9F\x98\xA2   \xF0\x9F\x98\xBF    \xF0\x9F\x98\xAD   \xF0\x9F\x98\xA2    \xF0\x9F\x98\xBF   \xF0\x9F\x98\xAD    \xF0\x9F\x98\xA2\n"
+         << "\n"
+         << "         " << YELLOW << "+---------------------------------+" << RESET << "\n"
+         << "         " << YELLOW << "|" << RESET << "                                 " << YELLOW << "|" << RESET << "\n"
+         << "         " << YELLOW << "|" << RESET << "  \xF0\x9F\x98\xAD " << CYAN << BOLD << "D O N ' T   L E A V E !" << RESET << " \xF0\x9F\x98\xAD  " << YELLOW << "|" << RESET << "\n"
+         << "         " << YELLOW << "|" << RESET << "                                 " << YELLOW << "|" << RESET << "\n"
+         << "         " << YELLOW << "+---------------------------------+" << RESET << "\n"
+         << "\n"
+         << "         \xF0\x9F\x98\xBF   \xF0\x9F\x98\xAD    \xF0\x9F\x98\xA2   \xF0\x9F\x98\xBF    \xF0\x9F\x98\xAD   \xF0\x9F\x98\xA2    \xF0\x9F\x98\xBF\n"
+         << "\n" << RESET;
+    sleepMs(700);
+
+    // Frame 3: "We will miss you" message
+    clearScreen();
+    cout << "\n\n"
+         << "         \xF0\x9F\x98\xAD   \xF0\x9F\x98\xA2    \xF0\x9F\x98\xBF   \xF0\x9F\x98\xAD    \xF0\x9F\x98\xA2   \xF0\x9F\x98\xBF    \xF0\x9F\x98\xAD\n"
+         << "\n"
+         << "         " << YELLOW << "+---------------------------------+" << RESET << "\n"
+         << "         " << YELLOW << "|" << RESET << "                                 " << YELLOW << "|" << RESET << "\n"
+         << "         " << YELLOW << "|" << RESET << "  \xF0\x9F\x98\xBF " << BLUE << BOLD << "W E   W I L L   M I S S" << RESET << " \xF0\x9F\x98\xBF  " << YELLOW << "|" << RESET << "\n"
+         << "         " << YELLOW << "|" << RESET << "           " << BLUE << BOLD << "Y O U . . ." << RESET << "           " << YELLOW << "|" << RESET << "\n"
+         << "         " << YELLOW << "|" << RESET << "                                 " << YELLOW << "|" << RESET << "\n"
+         << "         " << YELLOW << "+---------------------------------+" << RESET << "\n"
+         << "\n"
+         << "         \xF0\x9F\x98\xA2   \xF0\x9F\x98\xBF    \xF0\x9F\x98\xAD   \xF0\x9F\x98\xA2    \xF0\x9F\x98\xBF   \xF0\x9F\x98\xAD    \xF0\x9F\x98\xA2\n"
+         << "\n" << RESET;
+    sleepMs(800);
+
+    // Frame 4: Final goodbye
+    clearScreen();
+    cout << "\n\n"
+         << "         " << YELLOW << "+---------------------------------+" << RESET << "\n"
+         << "         " << YELLOW << "|" << RESET << "                                 " << YELLOW << "|" << RESET << "\n"
+         << "         " << YELLOW << "|" << RESET << "    \xF0\x9F\x98\xA2 " << YELLOW << BOLD << "G O O D B Y E . . ." << RESET << " \xF0\x9F\x98\xA2    " << YELLOW << "|" << RESET << "\n"
+         << "         " << YELLOW << "|" << RESET << "                                 " << YELLOW << "|" << RESET << "\n"
+         << "         " << YELLOW << "+---------------------------------+" << RESET << "\n"
+         << "\n\n" << RESET;
+    sleepMs(800);
+}

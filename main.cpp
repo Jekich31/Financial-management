@@ -180,6 +180,7 @@ int main() {
 		if (mainChoice == 0) {
 			StorageManager::saveToFile(manager, dbFilename);
 			StorageManager::saveSavingsToFile(savingsManager, savingsFilename);
+			playExitAnimation();
 			cout << ((lang == AppLanguage::Ukrainian) ? "До побачення!\n" : "Goodbye!\n");
 			break; // Вихід з програми
 		}
