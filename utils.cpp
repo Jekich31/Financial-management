@@ -159,6 +159,62 @@ void playDrawerAnimation() {
     sleepMs(700);
 }
 
+void playBriefcaseAnimation() {
+    auto sleepMs = [](int ms) {
+        this_thread::sleep_for(chrono::milliseconds(ms));
+    };
+
+    // Frame 1: Triangle upright, left position
+    clearScreen();
+    cout << "\n\n\n"
+         << "           \xF0\x9F\x92\xB3\n"
+         << "\n"
+         << "\n"
+         << "        \xF0\x9F\x92\xB0      \xF0\x9F\x92\xB5\n"
+         << "\n\n" << RESET;
+    sleepMs(400);
+
+    // Frame 2: Tipping right, balanced on bottom vertex
+    clearScreen();
+    cout << "\n\n\n"
+         << "            \xF0\x9F\x92\xB0   \xF0\x9F\x92\xB3\n"
+         << "\n"
+         << "              \xF0\x9F\x92\xB5\n"
+         << "\n\n\n" << RESET;
+    sleepMs(300);
+
+    // Frame 3: Triangle upright, center position
+    clearScreen();
+    cout << "\n\n\n"
+         << "                \xF0\x9F\x92\xB0\n"
+         << "\n"
+         << "\n"
+         << "             \xF0\x9F\x92\xB5      \xF0\x9F\x92\xB3\n"
+         << "\n\n" << RESET;
+    sleepMs(400);
+
+    // Frame 4: Tipping right again
+    clearScreen();
+    cout << "\n\n\n"
+         << "                 \xF0\x9F\x92\xB5   \xF0\x9F\x92\xB0\n"
+         << "\n"
+         << "                   \xF0\x9F\x92\xB3\n"
+         << "\n\n\n" << RESET;
+    sleepMs(300);
+
+    // Frame 5: Triangle upright, right position + title
+    clearScreen();
+    cout << "\n\n\n"
+         << "                     \xF0\x9F\x92\xB5\n"
+         << "\n"
+         << "\n"
+         << "                  \xF0\x9F\x92\xB3      \xF0\x9F\x92\xB0\n"
+         << "\n"
+         << "              " << CYAN << BOLD << "A  C  C  O  U  N  T  S" << RESET << "\n"
+         << RESET;
+    sleepMs(500);
+}
+
 void playDollarSnowAnimation() {
     auto sleepMs = [](int ms) {
         this_thread::sleep_for(chrono::milliseconds(ms));

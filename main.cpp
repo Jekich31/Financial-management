@@ -188,6 +188,7 @@ int main() {
 		// ПІДМЕНЮ 1: РАХУНКИ
 		// ==========================================
 		else if (mainChoice == 1) {
+			playBriefcaseAnimation();
 			while (true) {
 				string header = (lang == AppLanguage::Ukrainian)
 					? "\t\t 💼 УПРАВЛІННЯ РАХУНКАМИ "

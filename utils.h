@@ -12,3 +12,4 @@ std::string sanitize(std::string s);
 std::string progressBar(double current, double target, int width = 20);
 void playDrawerAnimation();
 void playDollarSnowAnimation();
+void playBriefcaseAnimation();
