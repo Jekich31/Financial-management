@@ -9,3 +9,4 @@ savings_data.txt
 *.o
 *.exe
 nul
+/.vs

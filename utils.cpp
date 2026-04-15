@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include "utils.h"
 #include <iostream>
 #include <limits>
@@ -11,7 +12,11 @@
 using namespace std;
 
 void clearScreen() {
-    system("clear");
+#ifdef _WIN32
+    system("cls");   // Windows
+#else
+    system("clear"); // Linux / macOS
+#endif
 }
 
 void waitUser() {
