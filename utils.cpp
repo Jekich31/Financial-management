@@ -158,3 +158,57 @@ void playDrawerAnimation() {
          << RESET;
     sleepMs(700);
 }
+
+void playDollarSnowAnimation() {
+    auto sleepMs = [](int ms) {
+        this_thread::sleep_for(chrono::milliseconds(ms));
+    };
+
+    const int W = 55;
+    const int H = 13;
+    const int TITLE_ROW = 6;
+    const string title = "$ T R A N S A C T I O N S $";
+    const int tStart = (W - (int)title.size()) / 2;
+    const int tEnd = tStart + (int)title.size();
+
+    int startPos[][2] = {
+        {0, 3},  {1, 19}, {2, 38}, {0, 50},
+        {4, 10}, {3, 29}, {5, 46},
+        {7, 5},  {8, 24}, {7, 48},
+        {10,12}, {9, 35}, {11, 7},
+        {12,42}, {1, 52}
+    };
+    const int N = 15;
+
+    for (int f = 0; f < 4; f++) {
+        clearScreen();
+        cout << "\n";
+
+        for (int r = 0; r < H; r++) {
+            bool hasDollar[60] = {};
+            for (int i = 0; i < N; i++) {
+                int dr = (startPos[i][0] + f * 2) % H;
+                int dc = (startPos[i][1] + f * 3) % W;
+                if (dr == TITLE_ROW && dc >= tStart - 1 && dc <= tEnd) continue;
+                if (dr == r && dc >= 0 && dc < W) hasDollar[dc] = true;
+            }
+
+            string line = "          ";
+            for (int c = 0; c < W; c++) {
+                if (r == TITLE_ROW && c >= tStart && c < tEnd) {
+                    if (c == tStart) { line += YELLOW; line += BOLD; }
+                    line += title[c - tStart];
+                    if (c == tEnd - 1) line += RESET;
+                } else if (hasDollar[c]) {
+                    line += GREEN;
+                    line += '$';
+                    line += RESET;
+                } else {
+                    line += ' ';
+                }
+            }
+            cout << line << "\n";
+        }
+        sleepMs(300);
+    }
+}

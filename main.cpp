@@ -376,6 +376,7 @@ int main() {
 		// ПІДМЕНЮ 2: ТРАНЗАКЦІЇ
 		// ==========================================
 		else if (mainChoice == 2) {
+			playDollarSnowAnimation();
 			while (true) {
 				string header = (lang == AppLanguage::Ukrainian)
 					? " 💸 ТРАНЗАКЦІЇ "
