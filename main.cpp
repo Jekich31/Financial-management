@@ -120,14 +120,19 @@ int main() {
 #endif
 	while (true) {
 		clearScreen();
-		cout <<"\t\t\t" << ((lang == AppLanguage::Ukrainian) ? "Увійдіть у систему (Введіть ваше ім'я):\n> " : "Log in (Enter your name):\n> ");
+		cout << "==================================================================================\n";
+		cout << "\t\t\t" << ((lang == AppLanguage::Ukrainian) ? "Увійдіть у систему" : "Log in") << "\n";
+		cout << "==================================================================================\n";
+		cout << "\n\t  " << ((lang == AppLanguage::Ukrainian) ? "Введіть ваше ім'я:" : "Enter your name:") << "\n";
+		cout << "\n\t> ";
 		getline(cin, currentUser);
 		// Видалити пробіли з початку та кінця
 		currentUser.erase(0, currentUser.find_first_not_of(" \t"));
 		currentUser.erase(currentUser.find_last_not_of(" \t") + 1);
 		if (!currentUser.empty()) break;
-		cout << "\t\t\t" << ((lang == AppLanguage::Ukrainian) ? "Помилка: Ім'я не може бути порожнім!\n" : "Error: Name cannot be empty!\n");
-		cout << "\t\t\t" << ((lang == AppLanguage::Ukrainian) ? "Натисніть Enter для повтору..." : "Press Enter to retry...");
+		cout << "\n\t  " << ((lang == AppLanguage::Ukrainian) ? "Помилка: Ім'я не може бути порожнім!" : "Error: Name cannot be empty!") << "\n";
+		cout << "\n==================================================================================\n";
+		cout << "\t  " << ((lang == AppLanguage::Ukrainian) ? "Натисніть Enter для повтору..." : "Press Enter to retry...");
 		cin.get();
 	}
 
@@ -802,6 +807,7 @@ int main() {
 		// ПІДМЕНЮ 5: ЗАОЩАДЖЕННЯ
 		// ==========================================
 		else if (mainChoice == 5) {
+			playDrawerAnimation();
 			while (true) {
 				string header = (lang == AppLanguage::Ukrainian)
 					? " 💰 ЗАОЩАДЖЕННЯ "

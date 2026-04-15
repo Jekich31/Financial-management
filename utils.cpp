@@ -1,5 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "utils.h"
+#include "colors.h"
 #include <iostream>
 #include <limits>
 #include <cstdlib>
@@ -8,6 +9,8 @@
 #include <sstream>
 #include <algorithm>
 #include <ctime>
+#include <thread>
+#include <chrono>
 
 using namespace std;
 
@@ -110,4 +113,48 @@ string progressBar(double current, double target, int width) {
     }
     bar += "] " + to_string((int)(ratio * 100)) + "%";
     return bar;
+}
+
+void playDrawerAnimation() {
+    auto sleepMs = [](int ms) {
+        this_thread::sleep_for(chrono::milliseconds(ms));
+    };
+
+    // Frame 1: Nightstand with all drawers closed
+    clearScreen();
+    cout << YELLOW
+         << "\n\n"
+         << "              +-----------------------+\n"
+         << "              |                       |\n"
+         << "              |    " << CYAN << "$  S A V I N G S" << YELLOW << "   |\n"
+         << "              +-----------------------+\n"
+         << "              |  +-----------------+  |\n"
+         << "              |  |       " << BOLD << "(o)" << RESET << YELLOW << "       |  |\n"
+         << "              |  +-----------------+  |\n"
+         << "              |  +-----------------+  |\n"
+         << "              |  |       " << BOLD << "(o)" << RESET << YELLOW << "       |  |\n"
+         << "              |  +-----------------+  |\n"
+         << "              +-----------------------+\n"
+         << "                 ||              ||\n"
+         << RESET;
+    sleepMs(700);
+
+    // Frame 2: Bottom drawer sliding out
+    clearScreen();
+    cout << YELLOW
+         << "\n\n"
+         << "              +-----------------------+\n"
+         << "              |                       |\n"
+         << "              |    " << CYAN << "$  S A V I N G S" << YELLOW << "   |\n"
+         << "              +-----------------------+\n"
+         << "              |  +-----------------+  |\n"
+         << "              |  |       " << BOLD << "(o)" << RESET << YELLOW << "       |  |\n"
+         << "              |  +-----------------+  |\n"
+         << "              +-----------------------+\n"
+         << "               \\-----------------------\\\n"
+         << "               |  " << GREEN << "$" << YELLOW << "       " << BOLD << "(o)" << RESET << YELLOW << "       " << GREEN << "$" << YELLOW << "  |\n"
+         << "               +-----------------------+\n"
+         << "                 ||              ||\n"
+         << RESET;
+    sleepMs(700);
 }
