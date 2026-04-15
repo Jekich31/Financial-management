@@ -215,6 +215,66 @@ void playBriefcaseAnimation() {
     sleepMs(500);
 }
 
+void playChartAnimation() {
+    auto sleepMs = [](int ms) {
+        this_thread::sleep_for(chrono::milliseconds(ms));
+    };
+
+    // Frame 1: empty axes
+    clearScreen();
+    cout << "\n\n"
+         << "               |\n"
+         << "               |\n"
+         << "               |\n"
+         << "               |\n"
+         << "               |\n"
+         << "               |\n"
+         << "               |______________________________\n"
+         << "\n\n" << RESET;
+    sleepMs(400);
+
+    // Frame 2: small bars appear
+    clearScreen();
+    cout << "\n\n"
+         << "               |\n"
+         << "               |\n"
+         << "               |\n"
+         << "               |\n"
+         << "               |         " << CYAN << "####" << RESET << "\n"
+         << "               |  " << GREEN << "####" << RESET << "  " << CYAN << "####" << RESET << "        " << YELLOW << "####" << RESET << "\n"
+         << "               |__" << GREEN << "####" << RESET << "__" << CYAN << "####" << RESET << "________" << YELLOW << "####" << RESET << "__\n"
+         << "\n\n" << RESET;
+    sleepMs(350);
+
+    // Frame 3: bars grow
+    clearScreen();
+    cout << "\n\n"
+         << "               |\n"
+         << "               |                " << GREEN << "####" << RESET << "\n"
+         << "               |         " << CYAN << "####" << RESET << "  " << GREEN << "####" << RESET << "\n"
+         << "               |  " << GREEN << "####" << RESET << "  " << CYAN << "####" << RESET << "  " << GREEN << "####" << RESET << "  " << YELLOW << "####" << RESET << "\n"
+         << "               |  " << GREEN << "####" << RESET << "  " << CYAN << "####" << RESET << "  " << GREEN << "####" << RESET << "  " << YELLOW << "####" << RESET << "\n"
+         << "               |  " << GREEN << "####" << RESET << "  " << CYAN << "####" << RESET << "  " << GREEN << "####" << RESET << "  " << YELLOW << "####" << RESET << "  " << CYAN << "####" << RESET << "\n"
+         << "               |__" << GREEN << "####" << RESET << "__" << CYAN << "####" << RESET << "__" << GREEN << "####" << RESET << "__" << YELLOW << "####" << RESET << "__" << CYAN << "####" << RESET << "__\n"
+         << "\n\n" << RESET;
+    sleepMs(350);
+
+    // Frame 4: full chart + title
+    clearScreen();
+    cout << "\n\n"
+         << "               |               " << GREEN << "####" << RESET << "\n"
+         << "               |         " << CYAN << "####" << RESET << "  " << GREEN << "####" << RESET << "\n"
+         << "               |         " << CYAN << "####" << RESET << "  " << GREEN << "####" << RESET << "         " << CYAN << "####" << RESET << "\n"
+         << "               |  " << GREEN << "####" << RESET << "  " << CYAN << "####" << RESET << "  " << GREEN << "####" << RESET << "  " << YELLOW << "####" << RESET << "  " << CYAN << "####" << RESET << "\n"
+         << "               |  " << GREEN << "####" << RESET << "  " << CYAN << "####" << RESET << "  " << GREEN << "####" << RESET << "  " << YELLOW << "####" << RESET << "  " << CYAN << "####" << RESET << "\n"
+         << "               |  " << GREEN << "####" << RESET << "  " << CYAN << "####" << RESET << "  " << GREEN << "####" << RESET << "  " << YELLOW << "####" << RESET << "  " << CYAN << "####" << RESET << "\n"
+         << "               |__" << GREEN << "####" << RESET << "__" << CYAN << "####" << RESET << "__" << GREEN << "####" << RESET << "__" << YELLOW << "####" << RESET << "__" << CYAN << "####" << RESET << "__\n"
+         << "\n"
+         << "                    " << CYAN << BOLD << "R  E  P  O  R  T  S" << RESET << "\n"
+         << RESET;
+    sleepMs(500);
+}
+
 void playDollarSnowAnimation() {
     auto sleepMs = [](int ms) {
         this_thread::sleep_for(chrono::milliseconds(ms));

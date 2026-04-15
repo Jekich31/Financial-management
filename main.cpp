@@ -552,6 +552,7 @@ int main() {
 		// ПІДМЕНЮ 3: ІСТОРІЯ ТА ЗВІТИ
 		// ==========================================
 		else if (mainChoice == 3) {
+			playChartAnimation();
 			while (true) {
 				string header = (lang == AppLanguage::Ukrainian) ? " 📊 ІСТОРІЯ ТА ЗВІТИ ---" : "--- 📊 HISTORY & REPORTS ";
 				vector<string> options;
