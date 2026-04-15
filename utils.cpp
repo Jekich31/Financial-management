@@ -35,6 +35,7 @@ double getValidDouble() {
     double value;
     while (true) {
         if (cin >> value && value >= 0) {
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             return value;
         }
         else {
@@ -53,26 +54,28 @@ bool parseAndValidateDate(const std::string& input, std::string& standardizedDat
     ss >> d >> sep1 >> m >> sep2 >> y;
 
     if (ss.fail() || (sep1 != '.' && sep1 != '/' && sep1 != '-') || sep1 != sep2) {
-        std::stringstream ssRev(input);
-        ssRev >> y >> sep1 >> m >> sep2 >> d;
-        if (ssRev.fail() || (sep1 != '.' && sep1 != '/' && sep1 != '-') || sep1 != sep2) {
-            return false;
-        }
+        return false;
+    }
+
+    // If first value > 31, assume YYYY-MM-DD format
+    if (d > 31) {
+        int temp = d; d = y; y = temp;
     }
 
     if (m < 1 || m > 12) return false;
+    if (y < 1000 || y > 9999) return false;
 
     int daysInMonth[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     if ((y % 4 == 0 && y % 100 != 0) || (y % 400 == 0)) {
         daysInMonth[2] = 29;
     }
-    
+
     if (d < 1 || d > daysInMonth[m]) return false;
 
     std::ostringstream oss;
-    oss << y << "-" << std::setfill('0') << std::setw(2) << m << "-" << std::setw(2) << d;
+    oss << std::setfill('0') << std::setw(4) << y << "-" << std::setw(2) << m << "-" << std::setw(2) << d;
     standardizedDate = oss.str();
-    
+
     return true;
 }
 

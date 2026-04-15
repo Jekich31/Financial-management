@@ -257,8 +257,9 @@ void StorageManager::loadFromFile(AccountManager& manager, const string& filenam
             if (type == "WALLET") currentAcc = make_shared<Wallet>(id, name, curr, owner, balance);
             else if (type == "CREDIT_CARD" && parts.size() >= 8) currentAcc = make_shared<CreditCard>(id, name, curr, owner, stod(parts[7]), balance);
             else if (type == "SHARED_BUDGET" && parts.size() >= 8) currentAcc = make_shared<SharedBudget>(id, name, curr, split(parts[7], ','), balance);
+            else currentAcc = nullptr;
 
-            manager.addAccount(currentAcc);
+            if (currentAcc) manager.addAccount(currentAcc);
         }
         else if (parts[0] == "TX" && currentAcc != nullptr && parts.size() >= 8) {
             Transaction tx{ parts[1], stod(parts[2]), parts[3], parts[4], parts[5], (parts[6] == "1"), parts[7] };
@@ -273,8 +274,7 @@ void StorageManager::loadFromFile(AccountManager& manager, const string& filenam
 vector<Transaction> ReportGenerator::getTop3Expenses(const vector<Transaction>& history, const string& startDate, const string& endDate) {
     vector<Transaction> filtered;
     for (const auto& t : history) {
-        // ДОДАНО: ігноруємо транзакції з категорією "Transfer"
-        if (!t.isIncome && t.category != "Transfer" && t.date >= startDate && t.date <= endDate) {
+        if (!t.isIncome && t.category != "Transfer" && t.category != "Transfer Out" && t.category != "Transfer In" && t.date >= startDate && t.date <= endDate) {
             filtered.push_back(t);
         }
     }
@@ -286,13 +286,13 @@ vector<Transaction> ReportGenerator::getTop3Expenses(const vector<Transaction>& 
 map<string, double> ReportGenerator::getExpensesByUser(const vector<Transaction>& history, const string& startDate, const string& endDate) {
     map<string, double> userStats;
     for (const auto& t : history) {
-        // ДОДАНО: ігноруємо транзакції з категорією "Transfer"
-        if (!t.isIncome && t.category != "Transfer" && t.date >= startDate && t.date <= endDate) {
+        if (!t.isIncome && t.category != "Transfer" && t.category != "Transfer Out" && t.category != "Transfer In" && t.date >= startDate && t.date <= endDate) {
             userStats[t.userName] += t.amount;
         }
     }
     return userStats;
 }
+
 std::vector<std::pair<std::string, double>> ReportGenerator::getTop3Categories(
     const std::vector<Transaction>& history,
     const std::string& startDate,
@@ -301,7 +301,7 @@ std::vector<std::pair<std::string, double>> ReportGenerator::getTop3Categories(
     std::map<std::string, double> categoryTotals;
 
     for (const auto& t : history) {
-        if (!t.isIncome && t.category != "Transfer" &&
+        if (!t.isIncome && t.category != "Transfer" && t.category != "Transfer Out" && t.category != "Transfer In" &&
             t.date >= startDate && t.date <= endDate) {
             categoryTotals[t.category] += t.amount;
         }

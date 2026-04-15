@@ -287,7 +287,6 @@ int main() {
 						manager.addAccount(newCard);
 					}
 					else if (type == 3) {
-						cin.ignore();
 						cout << ((lang == AppLanguage::Ukrainian) ? "Введіть імена ВСІХ учасників через пробіл: " : "Enter ALL member names separated by space: ");
 						string usersLine; getline(cin, usersLine);
 						stringstream ss(usersLine); string u; vector<string> members;
@@ -455,7 +454,6 @@ int main() {
 #endif
 					cout << ((lang == AppLanguage::Ukrainian) ? "Сума: " : "Amount: ");
 					double amount = getValidDouble();
-					cin.ignore();
 					cout << ((lang == AppLanguage::Ukrainian) ? "Категорія: " : "Category: ");
 					getline(cin, category);
 					cout << ((lang == AppLanguage::Ukrainian) ? "Опис: " : "Description: ");
@@ -533,7 +531,6 @@ int main() {
 #endif
 					cout << ((lang == AppLanguage::Ukrainian) ? "Сума переказу: " : "Transfer amount: ");
 					double amount = getValidDouble();
-					cin.ignore(numeric_limits<streamsize>::max(), '\n');
 					cout << ((lang == AppLanguage::Ukrainian) ? "📅 Дата (DD.MM.YYYY, Enter = сьогодні): " : "📅 Date (DD.MM.YYYY, Enter = today): ");
 					string date = getValidDate(lang);
 
@@ -947,7 +944,6 @@ int main() {
 #else
 						tcflush(STDIN_FILENO, TCIFLUSH);
 #endif
-						cin.ignore(numeric_limits<streamsize>::max(), '\n');
 						cout << ((lang == AppLanguage::Ukrainian) ? "📅 Дедлайн (DD.MM.YYYY, Enter = сьогодні, 0 - без дедлайну): " : "📅 Deadline (DD.MM.YYYY, Enter = today, 0 - no deadline): ");
 						deadline = getValidDate(lang);
 
@@ -1089,7 +1085,6 @@ int main() {
 						double newTarget = getValidDouble();
 						if (newTarget > 0) goal->setTargetAmount(newTarget);
 
-						cin.ignore(numeric_limits<streamsize>::max(), '\n');
 						cout << ((lang == AppLanguage::Ukrainian) ? "📅 Новий дедлайн (DD.MM.YYYY, Enter = сьогодні, 0 - без змін): " : "📅 New deadline (DD.MM.YYYY, Enter = today, 0 - no change): ");
 						string newDeadline = getValidDate(lang);
 						if (newDeadline != "0") goal->setDeadline(newDeadline);
