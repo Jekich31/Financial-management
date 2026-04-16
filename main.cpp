@@ -225,7 +225,7 @@ int main() {
 
 				if (sub == 1) { // Перегляд балансу
 					clearScreen();
-					cout << ((lang == AppLanguage::Ukrainian) ? "\t\t\tВАШІ РАХУНКИ \n" : " YOUR ACCOUNTS \n");
+					cout << ((lang == AppLanguage::Ukrainian) ? "\t\t\tВАШІ РАХУНКИ \n" : "\t\t\tYOUR ACCOUNTS \n");
 					showFastAccountList(manager, currentUser, lang);
 					waitUser();
 				}
@@ -298,7 +298,7 @@ int main() {
 						manager.addAccount(make_shared<Wallet>(newId, sanitize(name), currency, sanitize(currentUser)));
 					}
 					StorageManager::saveToFile(manager, dbFilename);
-					cout << ((lang == AppLanguage::Ukrainian) ? "\n\t\tРахунок створено! Ваш ID: " : "Account created! Your ID: ") << newId << "\n";
+					cout << ((lang == AppLanguage::Ukrainian) ? "\n\t\tРахунок створено! Ваш ID: " : "\n\t\tAccount created! Your ID: ") << newId << "\n";
 					waitUser();
 				}
 				else if (sub == 3) { // Редагування
@@ -312,7 +312,7 @@ int main() {
 						}
 					}
 					if (editableAccounts.empty()) {
-						cout << ((lang == AppLanguage::Ukrainian) ? "\t\tРахунків не знайдено.\n" : "No accounts found.\n");
+						cout << ((lang == AppLanguage::Ukrainian) ? "\t\tРахунків не знайдено.\n" : "\t\tNo accounts found.\n");
 						waitUser(); continue;
 					}
 					editOptions.push_back((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel");
@@ -380,8 +380,8 @@ int main() {
 			playDollarSnowAnimation();
 			while (true) {
 				string header = (lang == AppLanguage::Ukrainian)
-					? " 💸 ТРАНЗАКЦІЇ "
-					: " 💸 TRANSACTIONS ";
+					? " \t\t💸 ТРАНЗАКЦІЇ "
+					: " \t\t💸 TRANSACTIONS ";
 
 				vector<string> options;
 				if (lang == AppLanguage::Ukrainian) {
@@ -487,7 +487,7 @@ int main() {
 						waitUser(); continue;
 					}
 					senderOptions.push_back((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel");
-					string senderHeader = (lang == AppLanguage::Ukrainian) ? "Оберіть рахунок ВІДПРАВНИКА:" : "Choose SENDER account:";
+					string senderHeader = (lang == AppLanguage::Ukrainian) ? "\tОберіть рахунок ВІДПРАВНИКА:" : "\tChoose SENDER account:";
 					int senderSel = interactiveMenu(senderHeader, senderOptions);
 					if (senderSel == (int)senderAccounts.size()) continue;
 					string fromId = senderAccounts[senderSel]->getId();
@@ -552,7 +552,7 @@ int main() {
 		else if (mainChoice == 3) {
 			playChartAnimation();
 			while (true) {
-				string header = (lang == AppLanguage::Ukrainian) ? " 📊 ІСТОРІЯ ТА ЗВІТИ ---" : "--- 📊 HISTORY & REPORTS ";
+				string header = (lang == AppLanguage::Ukrainian) ? " \t\t📊 ІСТОРІЯ ТА ЗВІТИ" : "\t\t📊 HISTORY & REPORTS";
 				vector<string> options;
 
 				if (lang == AppLanguage::Ukrainian) {
@@ -734,7 +734,7 @@ int main() {
 		else if (mainChoice == 4) {
 			playCurrencyAnimation();
 			while (true) {
-				string header = (lang == AppLanguage::Ukrainian) ? " 🌍 КАПІТАЛ ТА ВАЛЮТИ " : " 🌍 TOTAL NET WORTH & CURRENCIES ";
+				string header = (lang == AppLanguage::Ukrainian) ? "\t\t🌍 КАПІТАЛ ТА ВАЛЮТИ " : "\t\t🌍 TOTAL NET WORTH & CURRENCIES ";
 				vector<string> options;
 
 				if (lang == AppLanguage::Ukrainian) {
@@ -812,8 +812,8 @@ int main() {
 			playDrawerAnimation();
 			while (true) {
 				string header = (lang == AppLanguage::Ukrainian)
-					? " 💰 ЗАОЩАДЖЕННЯ "
-					: " 💰 SAVINGS ";
+					? "\t\t💰 ЗАОЩАДЖЕННЯ "
+					: "\t\t💰 SAVINGS ";
 
 				vector<string> options;
 				if (lang == AppLanguage::Ukrainian) {
@@ -838,8 +838,8 @@ int main() {
 
 				while (true) {
 					string subHeader = (lang == AppLanguage::Ukrainian)
-						? (isShared ? " 🤝 СПІЛЬНІ ЗАОЩАДЖЕННЯ " : " 🏦 ОСОБИСТІ ЗАОЩАДЖЕННЯ ")
-						: (isShared ? " 🤝 SHARED SAVINGS " : " 🏦 PERSONAL SAVINGS ");	
+						? (isShared ? "\t\t🤝 СПІЛЬНІ ЗАОЩАДЖЕННЯ " : "\t\t🏦 ОСОБИСТІ ЗАОЩАДЖЕННЯ ")
+						: (isShared ? "\t\t🤝 SHARED SAVINGS " : "\t\t🏦 PERSONAL SAVINGS ");	
 
 					vector<string> subOptions;
 					if (lang == AppLanguage::Ukrainian) {
@@ -878,8 +878,8 @@ int main() {
 					if (subSel == 0) {
 						clearScreen();
 						cout << ((lang == AppLanguage::Ukrainian)
-							? (isShared ? "--- 🤝 СПІЛЬНІ ЦІЛІ ---\n" : "--- 🏦 ОСОБИСТІ ЦІЛІ ---\n")
-							: (isShared ? "--- 🤝 SHARED GOALS ---\n" : "--- 🏦 PERSONAL GOALS ---\n"));
+							? (isShared ? "\t\t🤝 СПІЛЬНІ ЦІЛІ\n" : "\t\t🏦 ОСОБИСТІ ЦІЛІ\n")
+							: (isShared ? "\t\t🤝 SHARED GOALS\n" : "\t\t🏦 PERSONAL GOALS\n"));
 						cout << "\n==================================================================================\n";
 						bool found = false;
 						for (auto& goal : savingsManager.getGoals()) {
@@ -982,7 +982,7 @@ int main() {
 							waitUser(); continue;
 						}
 						fundOptions.push_back((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel");
-						string fundHeader = (lang == AppLanguage::Ukrainian) ? "--- 💵 ПОПОВНЕННЯ ---" : "--- 💵 ADD FUNDS ---";
+						string fundHeader = (lang == AppLanguage::Ukrainian) ? "\t\t💵 ПОПОВНЕННЯ" : "\t\t💵 ADD FUNDS";
 						int fundSel = interactiveMenu(fundHeader, fundOptions);
 						if (fundSel == (int)fundGoals.size()) continue;
 
@@ -1019,7 +1019,7 @@ int main() {
 							waitUser(); continue;
 						}
 						wdOptions.push_back((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel");
-						string wdHeader = (lang == AppLanguage::Ukrainian) ? "--- 💸 ЗНЯТТЯ КОШТІВ ---" : "--- 💸 WITHDRAW ---";
+						string wdHeader = (lang == AppLanguage::Ukrainian) ? "\t\t💸 ЗНЯТТЯ КОШТІВ" : "\t\t💸 WITHDRAW";
 						int wdSel = interactiveMenu(wdHeader, wdOptions);
 						if (wdSel == (int)wdGoals.size()) continue;
 
@@ -1061,7 +1061,7 @@ int main() {
 							waitUser(); continue;
 						}
 						editGoalOptions.push_back((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel");
-						string editGoalHeader = (lang == AppLanguage::Ukrainian) ? "--- ✏️ РЕДАГУВАННЯ ---" : "--- ✏️ EDIT GOAL ---";
+						string editGoalHeader = (lang == AppLanguage::Ukrainian) ? "\t\t✏️ РЕДАГУВАННЯ" : "\t\t✏️ EDIT GOAL";
 						int editGoalSel = interactiveMenu(editGoalHeader, editGoalOptions);
 						if (editGoalSel == (int)editGoals.size()) continue;
 
@@ -1115,7 +1115,7 @@ int main() {
 							waitUser(); continue;
 						}
 						memberGoalOptions.push_back((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel");
-						string mgHeader = (lang == AppLanguage::Ukrainian) ? "--- 👥 КЕРУВАННЯ УЧАСНИКАМИ ---" : "--- 👥 MANAGE MEMBERS ---";
+						string mgHeader = (lang == AppLanguage::Ukrainian) ? "\t\t👥 КЕРУВАННЯ УЧАСНИКАМИ" : "\t\t👥 MANAGE MEMBERS";
 						int mgSel = interactiveMenu(mgHeader, memberGoalOptions);
 						if (mgSel == (int)memberGoals.size()) continue;
 
@@ -1191,7 +1191,7 @@ int main() {
 							waitUser(); continue;
 						}
 						delGoalOptions.push_back((lang == AppLanguage::Ukrainian) ? "Відміна" : "Cancel");
-						string delGoalHeader = (lang == AppLanguage::Ukrainian) ? "--- 🗑️ ВИДАЛЕННЯ ---" : "--- 🗑️ DELETE GOAL ---";
+						string delGoalHeader = (lang == AppLanguage::Ukrainian) ? "\t\t🗑️ ВИДАЛЕННЯ" : "\t\t🗑️ DELETE GOAL";
 						int delGoalSel = interactiveMenu(delGoalHeader, delGoalOptions);
 						if (delGoalSel == (int)delGoalIds.size()) continue;
 
@@ -1215,7 +1215,7 @@ int main() {
 		else if (mainChoice == 6) {
 			playSettingsAnimation();
 			while (true) {
-				string header = (lang == AppLanguage::Ukrainian) ? "--- ⚙️ НАЛАШТУВАННЯ ---" : "--- ⚙️ SETTINGS ---";
+				string header = (lang == AppLanguage::Ukrainian) ? "\t\t⚙️ НАЛАШТУВАННЯ" : "\t\t⚙️ SETTINGS";
 				vector<string> options;
 
 				if (lang == AppLanguage::Ukrainian) {
@@ -1244,8 +1244,8 @@ int main() {
 				}
 				else if (sub == 2) { // Змінити мову
 					string langHeader = (lang == AppLanguage::Ukrainian)
-						? "ОБЕРІТЬ МОВУ"
-						: "CHOOSE LANGUAGE";
+						? "\tОБЕРІТЬ МОВУ"
+						: "\tCHOOSE LANGUAGE";
 
 					vector<string> langOptions;
 					if (lang == AppLanguage::Ukrainian) {
