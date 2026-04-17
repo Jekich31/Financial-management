@@ -921,12 +921,18 @@ int main() {
 #else
 						tcflush(STDIN_FILENO, TCIFLUSH);
 #endif
-						cout << ((lang == AppLanguage::Ukrainian) ? "Назва цілі: " : "Goal name: ");
+						cout << "==================================================================================";
+						cout << ((lang == AppLanguage::Ukrainian) ? "\n\t\t➕ Нова ціль" : "\n\t\t➕ New Goal");
+						cout << "\n==================================================================================\n";
+						cout << ((lang == AppLanguage::Ukrainian) ? "\n\tНазва цілі: " : "\n\tGoal name: ");
 						getline(cin, name);
-						if (name.empty()) { cout << ((lang == AppLanguage::Ukrainian) ? "Помилка!\n" : "Error!\n"); waitUser(); continue; }
+						
+						if (name.empty()) { cout << ((lang == AppLanguage::Ukrainian) ? "\n\tПомилка!\n" : "\n\tError!\n"); waitUser(); continue; }
 
-						cout << ((lang == AppLanguage::Ukrainian) ? "Цільова сума: " : "Target amount: ");
+						cout << ((lang == AppLanguage::Ukrainian) ? "\n\tЦільова сума: " : "\n\tTarget amount: ");
+						
 						double target = getValidDouble();
+						cout << "\n\n==================================================================================\n";
 
 						{
 							string currHeader = (lang == AppLanguage::Ukrainian) ? "Оберіть валюту:" : "Choose currency:";
@@ -960,6 +966,7 @@ int main() {
 							newGoal.setMembers(members);
 						}
 
+						cout << "\n==================================================================================\n";
 						savingsManager.addGoal(newGoal);
 						StorageManager::saveSavingsToFile(savingsManager, savingsFilename);
 						cout << ((lang == AppLanguage::Ukrainian) ? "✅ Ціль створено! ID: " : "✅ Goal created! ID: ") << newId << "\n";
